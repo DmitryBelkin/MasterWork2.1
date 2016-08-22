@@ -206,21 +206,21 @@ void FEM::GenerateMatrixProfle()
 	{
 		AddNvtr(m_nvtr[i]);
 	}
-	for (int i = 0; i < n; ++i)
+	for (unsigned int i = 0; i < n; ++i)
 	{
 		sort(ig[i].begin(), ig[i].begin() + ig[i].size());
 	}
 	ia.clear();
 	ia.resize(n + 1);
 	ia[0] = 0;
-	for (int i = 1; i < n + 1; ++i)
+	for (unsigned int i = 1; i < n + 1; ++i)
 	{
 		ia[i] = ia[i - 1] + ig[i - 1].size();
 	}
 	ja.clear();
 	ja.resize(ia[n]);
 	int i = 0;
-	for (int j = 0; j < n; ++j)
+	for (unsigned int j = 0; j < n; ++j)
 	{
 		for (unsigned int k = 0; k < ig[j].size(); ++k, ++i)
 		{

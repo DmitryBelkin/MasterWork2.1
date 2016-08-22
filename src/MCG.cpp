@@ -14,8 +14,8 @@ void MCG::SetEps(const double eps) { m_eps = eps; }
 
 void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; ++i) x[i] = 0;
-	for (int i = 0; i < n; ++i)
+	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
+	for (unsigned int i = 0; i < n; ++i)
 	{
 		x[i] = f[i] / Df[i];
 		for (int j = ia[i]; j < ia[i + 1]; ++j)
@@ -27,7 +27,7 @@ void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double
 
 void MCG::Ux(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; ++i) x[i] = 0;
+	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] += f[i];
@@ -40,7 +40,7 @@ void MCG::Ux(const vector <double> EUf, vector <double> &x, const vector <double
 
 void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; ++i) x[i] = 0;
+	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = (x[i] + f[i]) / Df[i];
@@ -53,8 +53,8 @@ void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <doubl
 
 void MCG::UTx(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; ++i) x[i] = 0;
-	for (int i = 0; i < n; ++i)
+	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
+	for (unsigned int i = 0; i < n; ++i)
 	{
 		x[i] = f[i];
 		for (int j = ia[i]; j < ia[i + 1]; ++j)
@@ -67,7 +67,7 @@ void MCG::UTx(const vector <double> EUf, vector <double> &x, const vector <doubl
 double MCG::ScalarProduct(const vector <double> x, const vector <double> y) const
 {
 	double temp = 0;
-	for (int i = 0; i < n; ++i)
+	for (unsigned int i = 0; i < n; ++i)
 		temp += x[i] * y[i];
 	return temp;
 }
@@ -80,8 +80,8 @@ double MCG::NormVector(const vector <double> x) const {	return sqrt(ScalarProduc
 
 void MCG::MultMatrixOnVector(const vector <double> EU, const vector <double> EL, const vector <double> D, const vector <double> vect, vector <double> &res) const
 {
-	for (int i = 0; i < n; ++i) res[i] = 0;
-	for (int i = 0; i < n; ++i)
+	for (unsigned int i = 0; i < n; ++i) res[i] = 0;
+	for (unsigned int i = 0; i < n; ++i)
 	{
 		res[i] = D[i] * vect[i];
 		for (int j = ia[i]; j < ia[i + 1]; ++j)
@@ -96,7 +96,8 @@ void MCG::MultMatrixOnVector(const vector <double> EU, const vector <double> EL,
 
 void MCG::CreateLU()
 {
-	int size = ia[n], i, j, kj, ki, j1, i0, i1, k;
+	int size = ia[n], j, kj, ki, j1, i0, i1, k;
+	unsigned int i;
 	double sd, su, sl;
 	L.clear();
 	U.clear();
@@ -105,7 +106,7 @@ void MCG::CreateLU()
 	L.resize(size);
 	U.resize(size);
 	LUdi.resize(n);
-	for (i = 0; i<n; ++i)
+	for (i = 0; i < n; ++i)
 	{
 		sd = 0;
 		i0 = ia[i];
@@ -147,7 +148,7 @@ void MCG::CreateLU()
 
 void MCG::MCG_LU()
 {
-	int i, k;
+	unsigned int i, k;
 	vector <double> r, z, r_, temp1, temp2;
 	double alpha, beta, t, norm;
 	r    .resize(n);
