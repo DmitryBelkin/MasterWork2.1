@@ -19,17 +19,18 @@ public:
 	MCG() { };
 	~MCG() { };
 
-	void setMaxiter(int maxiter);
-	void setEps(double eps);
+	void   MCG_LU();
+	void   CreateLU();
 
-	void Lx(vector <double> &ELf, vector <double> &Df, vector <double> &x, vector <double> &f);
-	void Ux(vector <double> &EUf, vector <double> &x, vector <double> &f);
-	void LTx(vector <double> &ELf, vector <double> &Df, vector <double> &x, vector <double> &f);
-	void UTx(vector <double> &EUf, vector <double> &x, vector <double> &f);
-	double scalarProduct(vector <double> &x, vector <double> &y);
-	double normVector(vector <double> &x);
-	void multMatrixOnVector(vector <double> &EU, vector <double> &EL, vector <double> &D, vector <double> &vect, vector <double> &res);
-	void createLU();
-	void MCG_LU();
+	void   SetEps(const double eps);
+	void   SetMaxiter(const int maxiter);
+
+	double NormVector(const vector <double> x) const;
+	double ScalarProduct(const vector <double> x, const vector <double> y) const;
+
+	void   Lx (const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const;
+	void   Ux (const vector <double> EUf,                           vector <double> &x, const vector <double> f) const;
+	void   LTx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const;
+	void   UTx(const vector <double> EUf,                           vector <double> &x, const vector <double> f) const;
+	void   MultMatrixOnVector(const vector <double> EU, const vector <double> EL, const vector <double> D, const vector <double> vect, vector <double> &res) const;
 };
-

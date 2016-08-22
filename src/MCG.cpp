@@ -3,33 +3,34 @@
 
 //..............................................................................................
 
-void MCG::setMaxiter(int maxiter)
+void MCG::SetMaxiter(const int maxiter)
 {
 	m_maxiter = maxiter;
 }
 
 //..............................................................................................
 
-void MCG::setEps(double eps)
+void MCG::SetEps(const double eps)
 {
 	m_eps = eps;
 }
 
 //..............................................................................................
 
-void MCG::Lx(vector <double> &ELf, vector <double> &Df, vector <double> &x, vector <double> &f)
+void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i<n; i++) x[i] = 0;
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i < n; i++) x[i] = 0;
+	for (int i = 0; i < n; i++)
 	{
 		x[i] = f[i] / Df[i];
-		for (int j = ia[i] ; j<ia[i + 1] ; j++) x[i] = x[i] - ELf[j] * x[ja[j] ] / Df[i];
+		for (int j = ia[i]; j<ia[i + 1] ; j++)
+			x[i] = x[i] - ELf[j] * x[ja[j] ] / Df[i];
 	}
 }
 
 //..............................................................................................
 
-void MCG::Ux(vector <double> &EUf, vector <double> &x, vector <double> &f)
+void MCG::Ux(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
 	for (int i = 0; i<n; i++) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
@@ -41,19 +42,19 @@ void MCG::Ux(vector <double> &EUf, vector <double> &x, vector <double> &f)
 
 //..............................................................................................
 
-void MCG::LTx(vector <double> &ELf, vector <double> &Df, vector <double> &x, vector <double> &f)
+void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i<n; i++) x[i] = 0;
+	for (int i = 0; i < n; i++) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = (x[i] + f[i]) / Df[i];
-		for (int j = ia[i]; j<ia[i + 1] ; j++) x[ja[j]] = x[ja[j]] - ELf[j] * x[i];
+		for (int j = ia[i]; j<ia[i + 1]; j++) x[ja[j]] = x[ja[j]] - ELf[j] * x[i];
 	}
 }
 
 //..............................................................................................
 
-void MCG::UTx(vector <double> &EUf, vector <double> &x, vector <double> &f)
+void MCG::UTx(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
 	for (int i = 0; i<n; i++) x[i] = 0;
 	for (int i = 0; i<n; i++)
@@ -65,7 +66,7 @@ void MCG::UTx(vector <double> &EUf, vector <double> &x, vector <double> &f)
 
 //..............................................................................................
 
-double MCG::scalarProduct(vector <double> &x, vector <double> &y)
+double MCG::ScalarProduct(const vector <double> x, const vector <double> y) const
 {
 	double temp = 0;
 	for (int i = 0; i < n; i++) temp += x[i] * y[i];
@@ -74,14 +75,14 @@ double MCG::scalarProduct(vector <double> &x, vector <double> &y)
 
 //..............................................................................................
 
-double MCG::normVector(vector <double> &x)
+double MCG::NormVector(const vector <double> x) const
 {
-	return sqrt(scalarProduct(x, x));
+	return sqrt(ScalarProduct(x, x));
 }
 
 //..............................................................................................
 
-void MCG::multMatrixOnVector(vector <double> &EU, vector <double> &EL, vector <double> &D, vector <double> &vect, vector <double> &res)
+void MCG::MultMatrixOnVector(const vector <double> EU, const vector <double> EL, const vector <double> D, const vector <double> vect, vector <double> &res) const
 {
 	for (int i = 0; i<n; i++) res[i] = 0;
 	for (int i = 0; i<n; i++)
@@ -97,7 +98,7 @@ void MCG::multMatrixOnVector(vector <double> &EU, vector <double> &EL, vector <d
 
 //..............................................................................................
 
-void MCG::createLU()
+void MCG::CreateLU()
 {
 	int size = ia[n], i, j, kj, ki, j1, i0, i1, k;
 	double sd, su, sl;
@@ -158,39 +159,39 @@ void MCG::MCG_LU()
 	r_.resize(n);
 	temp1.resize(n);
 	temp2.resize(n);
-	createLU();
+	CreateLU();
 	Lx(L, LUdi, temp1, f);
 	LTx(L, LUdi, temp2, temp1);
-	multMatrixOnVector(ggl, ggu, di, temp2, temp1);
+	MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 	UTx(U, r, temp1);
 	for (i = 0; i<n; i++) z[i] = r_[i] = r[i];
-	t = normVector(f);
-	norm = normVector(r) / t;
-	cout << "normVector(r) = " << normVector(r) << endl;
+	t = NormVector(f);
+	norm = NormVector(r) / t;
+	cout << "NormVector(r) = " << NormVector(r) << endl;
 	cout << "t             = " << t             << endl;
 	k = 1;
 	while (norm>m_eps && k<m_maxiter)
 	{
 		Ux(U, temp1, z);
-		multMatrixOnVector(ggu, ggl, di, temp1, temp2);
+		MultMatrixOnVector(ggu, ggl, di, temp1, temp2);
 		Lx(L, LUdi, temp1, temp2);
 		LTx(L, LUdi, temp2, temp1);
-		multMatrixOnVector(ggl, ggu, di, temp2, temp1);
+		MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 		UTx(U, temp2, temp1);
-		alpha = scalarProduct(r, r) / scalarProduct(temp2, z);
+		alpha = ScalarProduct(r, r) / ScalarProduct(temp2, z);
 		for (i = 0; i<n; i++)
 		{
 			xtch[i] = xtch[i] + alpha*z[i];
 			r[i] = r[i] - alpha*temp2[i];
 		}
-		beta = scalarProduct(r, r) / scalarProduct(r_, r_);
+		beta = ScalarProduct(r, r) / ScalarProduct(r_, r_);
 		for (i = 0; i<n; i++)
 		{
 			z[i] = r[i] + beta*z[i];
 			r_[i] = r[i];
 		}
 		k++;
-		norm = normVector(r) / t;
+		norm = NormVector(r) / t;
 
 		cout << "\r" << norm;
 	}
