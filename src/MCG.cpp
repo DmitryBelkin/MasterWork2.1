@@ -149,17 +149,17 @@ void MCG::MCG_LU()
 	int i, k;
 	vector <double> r, z, r_, temp1, temp2;
 	double alpha, beta, t, norm;
-	r.resize(n);
-	z.resize(n);
-	r_.resize(n);
+	r    .resize(n);
+	z    .resize(n);
+	r_   .resize(n);
 	temp1.resize(n);
 	temp2.resize(n);
 	CreateLU();
-	Lx(L, LUdi, temp1, f);
+	Lx (L, LUdi, temp1, f);
 	LTx(L, LUdi, temp2, temp1);
 	MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 	UTx(U, r, temp1);
-	for (i = 0; i<n; ++i) z[i] = r_[i] = r[i];
+	for (i = 0; i < n; ++i) z[i] = r_[i] = r[i];
 	t = NormVector(f);
 	norm = NormVector(r) / t;
 	cout << "NormVector(r) = " << NormVector(r) << endl;
@@ -174,7 +174,7 @@ void MCG::MCG_LU()
 		MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 		UTx(U, temp2, temp1);
 		alpha = ScalarProduct(r, r) / ScalarProduct(temp2, z);
-		for (i = 0; i<n; ++i)
+		for (i = 0; i < n; ++i)
 		{
 			xtch[i] = xtch[i] + alpha*z[i];
 			r[i]   -= alpha*temp2[i];
