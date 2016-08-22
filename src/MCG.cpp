@@ -3,17 +3,11 @@
 
 //..............................................................................................
 
-void MCG::SetMaxiter(const int maxiter)
-{
-	m_maxiter = maxiter;
-}
+void MCG::SetMaxiter(const int maxiter) { m_maxiter = maxiter; }
 
 //..............................................................................................
 
-void MCG::SetEps(const double eps)
-{
-	m_eps = eps;
-}
+void MCG::SetEps(const double eps) { m_eps = eps; }
 
 //..............................................................................................
 
@@ -23,8 +17,8 @@ void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double
 	for (int i = 0; i < n; i++)
 	{
 		x[i] = f[i] / Df[i];
-		for (int j = ia[i]; j<ia[i + 1] ; j++)
-			x[i] = x[i] - ELf[j] * x[ja[j] ] / Df[i];
+		for (int j = ia[i]; j < ia[i + 1]; j++)
+			x[i] = x[i] - ELf[j] * x[ ja[j] ] / Df[i];
 	}
 }
 
@@ -32,11 +26,11 @@ void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double
 
 void MCG::Ux(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i<n; i++) x[i] = 0;
+	for (int i = 0; i < n; i++) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = x[i] + f[i];
-		for (int j = ia[i] ; j<ia[i + 1] ; j++) x[ja[j] ] = x[ja[j] ] - EUf[j] * x[i];
+		for (int j = ia[i]; j  <ia[i + 1] ; j++) x[ ja[j] ] = x[ ja[j] ] - EUf[j] * x[i];
 	}
 }
 
@@ -48,7 +42,7 @@ void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <doubl
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = (x[i] + f[i]) / Df[i];
-		for (int j = ia[i]; j<ia[i + 1]; j++) x[ja[j]] = x[ja[j]] - ELf[j] * x[i];
+		for (int j = ia[i]; j < ia[i + 1]; j++) x[ ja[j] ] = x[ ja[j] ] - ELf[j] * x[i];
 	}
 }
 
@@ -56,11 +50,11 @@ void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <doubl
 
 void MCG::UTx(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i<n; i++) x[i] = 0;
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i < n; i++) x[i] = 0;
+	for (int i = 0; i < n; i++)
 	{
 		x[i] = f[i];
-		for (int j = ia[i]; j<ia[i + 1]; j++) x[i] = x[i] - EUf[j] * x[ja[j] ];
+		for (int j = ia[i]; j < ia[i + 1]; j++) x[i] = x[i] - EUf[j] * x[ ja[j] ];
 	}
 }
 
@@ -75,20 +69,17 @@ double MCG::ScalarProduct(const vector <double> x, const vector <double> y) cons
 
 //..............................................................................................
 
-double MCG::NormVector(const vector <double> x) const
-{
-	return sqrt(ScalarProduct(x, x));
-}
+double MCG::NormVector(const vector <double> x) const {	return sqrt(ScalarProduct(x, x)); }
 
 //..............................................................................................
 
 void MCG::MultMatrixOnVector(const vector <double> EU, const vector <double> EL, const vector <double> D, const vector <double> vect, vector <double> &res) const
 {
-	for (int i = 0; i<n; i++) res[i] = 0;
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i < n; i++) res[i] = 0;
+	for (int i = 0; i < n; i++)
 	{
 		res[i] = D[i] * vect[i];
-		for (int j = ia[i] ; j<ia[i + 1] ; j++)
+		for (int j = ia[i]; j < ia[i + 1]; j++)
 		{
 			res[ja[j] ] = res[ja[j]] + EU[j] * vect[i];
 			res[i] = res[i] + EL[j] * vect[ja[j]];
@@ -185,7 +176,7 @@ void MCG::MCG_LU()
 			r[i] = r[i] - alpha*temp2[i];
 		}
 		beta = ScalarProduct(r, r) / ScalarProduct(r_, r_);
-		for (i = 0; i<n; i++)
+		for (i = 0; i < n; i++)
 		{
 			z[i] = r[i] + beta*z[i];
 			r_[i] = r[i];
