@@ -3,7 +3,21 @@
 class FEM : MCG
 {
 public:
-	FEM() { };
+	FEM::FEM()
+		: m_elemAmount(0)
+		, m_xyz(0)
+		, m_xyzDisplacement(0)
+		, m_checkMesh(0)
+		, m_nvtr(0)
+		, m_nvk1(0)
+		, m_nvk2(0)
+		, m_xLeftCheckMesh(0), m_xRightCheckMesh(0)
+		, m_yLeftCheckMesh(0), m_yRightCheckMesh(0)
+		, m_zLeftCheckMesh(0), m_zRightCheckMesh(0)
+		, m_amountOfStepsX(0), m_amountOfStepsY(0), m_amountOfStepsZ(0)
+		, m_nvk2_1(0), m_nvk2_2(0)
+		, m_nu(0), m_E(0), m_C(0)
+	{ }
 	virtual ~FEM() { };
 
 	// attributes
