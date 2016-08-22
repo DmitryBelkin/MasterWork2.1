@@ -202,7 +202,7 @@ void FEM::GenerateMatrixProfle()
 		degrees[2] = i * 3 + 2;
 		AddDegree(degrees);
 	}
-	for (int i = 0; i < m_elemAmount; ++i)
+	for (unsigned int i = 0; i < m_elemAmount; ++i)
 	{
 		AddNvtr(m_nvtr[i]);
 	}
@@ -788,11 +788,11 @@ void FEM::GenerateMeshForCheck()
 
 	vector <double> bufCheckMesh; bufCheckMesh.resize(3);
 
-	for(int k = 0; k < m_amountOfStepsZ; ++k)
+	for (unsigned int k = 0; k < m_amountOfStepsZ; ++k)
 	{
-		for(int j = 0; j < m_amountOfStepsY; ++j)
+		for (unsigned int j = 0; j < m_amountOfStepsY; ++j)
 		{
-			for(int i = 0; i < m_amountOfStepsX; ++i)
+			for (unsigned int i = 0; i < m_amountOfStepsX; ++i)
 			{
 				bufCheckMesh[0] = m_xLeftCheckMesh + xStep * i;
 				bufCheckMesh[1] = m_yLeftCheckMesh + yStep * j;

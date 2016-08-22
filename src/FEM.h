@@ -7,14 +7,14 @@ public:
 	virtual ~FEM() { };
 
 	// attributes
-	int                                    m_elemAmount;
+	unsigned  int                          m_elemAmount;
 	std::vector < std::vector < double > > m_xyz, m_xyzDisplacement, m_checkMesh;
 	std::vector < std::vector < int > >    m_nvtr;
 	std::vector < int >                    m_nvk1, m_nvk2;
 	double                                 m_xLeftCheckMesh, m_xRightCheckMesh,
 	                                       m_yLeftCheckMesh, m_yRightCheckMesh,
 	                                       m_zLeftCheckMesh, m_zRightCheckMesh;
-	int                                    m_amountOfStepsX, m_amountOfStepsY, m_amountOfStepsZ;
+	unsigned int                           m_amountOfStepsX, m_amountOfStepsY, m_amountOfStepsZ;
 	std::vector < int >                    m_nvk2_1, m_nvk2_2;
 	double                                 m_nu, m_E;
 	vector < vector < double > >           m_C;
