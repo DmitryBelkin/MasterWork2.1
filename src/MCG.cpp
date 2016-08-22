@@ -1,4 +1,5 @@
 #include "MCG.h"
+#include <fstream>
 #include <assert.h>
 
 //..............................................................................................
@@ -201,7 +202,7 @@ void MCG::MCG_LU()
 	ofstream out("output.txt");
 	out << "k = " << k << endl;
 	out << "norm = " << norm << endl << endl;
-	for(int i = 0; i < xtch.size(); ++i)
+	for (unsigned int i = 0; i < xtch.size(); ++i)
 	{
 		out << xtch[i] << endl;
 	}

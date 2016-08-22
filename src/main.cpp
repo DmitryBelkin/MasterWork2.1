@@ -1,7 +1,6 @@
 #include "FEM.h"
-#include <iostream>
 
-int main(int argc, char *argv[])
+int main()
 {
 	FEM* problem = new FEM();
 	problem->SolveProblem ();
@@ -9,4 +8,5 @@ int main(int argc, char *argv[])
 	problem->SetBordersOfCheckMesh(-2, 10, -2, 5, -2, 20); // @todo גגמהטעü טח פאיכא
 	problem->GenerateMeshForCheck();
 	problem->PrintFigure();
+	return 0;
 }

@@ -1,8 +1,6 @@
 #include "FEM.h"
 #include "HelpFunctions.h"
-#include <iostream>
 #include <fstream>
-#include <string>
 #include <cassert>
 #include <cmath>
 
@@ -25,9 +23,9 @@ void FEM::InputMesh(){
 	mesh_name >> meshName;
 	mesh_name.close();
 
-	strcpy(meshWay, "../resources/input_meshes/");
-	strcat( meshName, ".unv");
-	strcat( meshWay, meshName);
+	strcpy_s(meshWay, "../resources/input_meshes/");
+	strcat_s( meshName, ".unv");
+	strcat_s( meshWay, meshName);
 
 	ifstream working_area(meshWay);
 	string str;
@@ -35,7 +33,7 @@ void FEM::InputMesh(){
 
 	vector <int> nvtrBuf  ; nvtrBuf.resize(8);
 	vector <double> xyzBuf; xyzBuf.resize(3);
-	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8, buf9, buf10;
+	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8;
 	int num;
 
 	// считывание первых строк, не несущих  информации о сетке
@@ -185,9 +183,8 @@ void FEM::InputElastityParameters(){
 }
 
 void FEM::SolveProblem(){
-	Input();                             // ввёл: 1) сетку. 2) параметры СЛАУ. 3) параметры задачи
+	Input(); // ввёл: 1) сетку. 2) параметры СЛАУ. 3) параметры задачи
 	SetDefault();
-
 	GenerateMatrixProfle();
 	CreateGlobalMatrixAndRightPart();
 	MCG_LU();
@@ -198,7 +195,7 @@ void FEM::GenerateMatrixProfle()
 	// для связей степеней свободы в каждом блоке K (для каждой базисной функции в узле)
 	vector <int> degrees;
 	degrees.resize(3);
-	for(int i = 0; i < m_xyz.size(); ++i)
+	for (unsigned int i = 0; i < m_xyz.size(); ++i)
 	{
 		degrees[0] = i * 3    ;
 		degrees[1] = i * 3 + 1;
@@ -225,7 +222,7 @@ void FEM::GenerateMatrixProfle()
 	int i = 0;
 	for (int j = 0; j < n; ++j)
 	{
-		for (int k = 0; k < ig[j].size(); ++k, ++i)
+		for (unsigned int k = 0; k < ig[j].size(); ++k, ++i)
 		{
 			ja[i] = ig[j][k];
 		}
@@ -250,7 +247,7 @@ void FEM::AddNvtr(vector <int> &mtr)
 				if (ki > kj)
 				{
 					bool finded = false;
-					for (int l = 0; l < ig[ki].size() && !finded; l++)
+					for (unsigned int l = 0; l < ig[ki].size() && !finded; ++l)
 					{
 						if (ig[ki][l] == kj)
 						{
@@ -279,7 +276,7 @@ void FEM::AddDegree(vector <int> &mtr)
 			if (ki > kj)
 			{
 				bool finded = false;
-				for (int l = 0; l < ig[ki].size() && !finded; l++)
+				for (unsigned int l = 0; l < ig[ki].size() && !finded; ++l)
 				{
 					if (ig[ki][l] == kj)
 					{
@@ -300,7 +297,7 @@ double FEM::X(int k, double x, int numNvtr) const
 	const double xLeft  = m_xyz[ m_nvtr[numNvtr][0] ][0];
 	const double xRight = m_xyz[ m_nvtr[numNvtr][1] ][0];
 	const double length = xRight - xLeft;
-	double localBasisFunctionValue;
+	double localBasisFunctionValue = 0;
 	assert(xRight > xLeft);
 	switch(k)
 	{
@@ -318,7 +315,7 @@ double FEM::Y(int k, double y, int numNvtr) const
 	const double yLeft  = m_xyz[ m_nvtr[numNvtr][0] ][1];
 	const double yRight = m_xyz[ m_nvtr[numNvtr][2] ][1];
 	const double length = yRight - yLeft;
-	double localBasisFunctionValue;
+	double localBasisFunctionValue = 0;
 	assert(yRight > yLeft);
 	switch(k)
 	{
@@ -336,7 +333,7 @@ double FEM::Z(int k, double z, int numNvtr) const
 	const double zLeft  = m_xyz[ m_nvtr[numNvtr][0] ][2];
 	const double zRight = m_xyz[ m_nvtr[numNvtr][5] ][2];
 	const double length = zRight - zLeft;
-	double localBasisFunctionValue;
+	double localBasisFunctionValue = 0;
 	assert(zRight > zLeft);
 	switch(k)
 	{
@@ -355,7 +352,7 @@ double FEM::DerivativeX(int num, int numNvtr) const
 	const double xLeft  = m_xyz[ m_nvtr[numNvtr][0] ][0];
 	const double xRight = m_xyz[ m_nvtr[numNvtr][1] ][0];
 	const double length = xRight - xLeft;
-	double localBasisFunctionDerivative;
+	double localBasisFunctionDerivative = 0;
 	assert(xRight > xLeft);
 	switch(k)
 	{
@@ -374,7 +371,7 @@ double FEM::DerivativeY(int num, int numNvtr) const
 	const double yLeft  = m_xyz[ m_nvtr[numNvtr][0] ][1];
 	const double yRight = m_xyz[ m_nvtr[numNvtr][2] ][1];
 	const double length = yRight - yLeft;
-	double localBasisFunctionDerivative;
+	double localBasisFunctionDerivative = 0;
 	assert(yRight > yLeft);
 	switch(k)
 	{
@@ -393,7 +390,7 @@ double FEM::DerivativeZ(int num, int numNvtr) const
 	const double zLeft  = m_xyz[ m_nvtr[numNvtr][0] ][2];
 	const double zRight = m_xyz[ m_nvtr[numNvtr][5] ][2];
 	const double length = zRight - zLeft;
-	double localBasisFunctionDerivative;
+	double localBasisFunctionDerivative = 0;
 	assert(zRight > zLeft);
 	switch(k)
 	{
@@ -434,7 +431,7 @@ void FEM::CreateGlobalMatrixAndRightPart()
 		KLocal[i].resize(24);
 	}
 
-	for (int i = 0; i < m_nvtr.size(); ++i)
+	for (unsigned int i = 0; i < m_nvtr.size(); ++i)
 	{
 		GenerateLocalStiffnessMatrix(i, KLocal);
 		AddLocalToGlobal(m_nvtr[i], KLocal, b);
@@ -445,8 +442,6 @@ void FEM::CreateGlobalMatrixAndRightPart()
 	BoundaryConditions();
 
 	cout << "====================<> Boundary conditions considered! <>==================== " << endl;
-
-	
 }
 
 void FEM::SetDefault()
@@ -590,7 +585,7 @@ void FEM::BoundaryConditions()
 	double Ug;
 
 	// вторые краевые на одной грани (сверху)
-	for (int i = 0; i < m_nvk2_1.size(); ++i)
+	for (unsigned int i = 0; i < m_nvk2_1.size(); ++i)
 	{
 		uzel = m_nvk2_1[i];
 		Ug = GetTraction_1(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
@@ -598,14 +593,14 @@ void FEM::BoundaryConditions()
 	}
 
 	// вторые краевые на одной грани (снизу)
-	for (int i = 0; i < m_nvk2_2.size(); ++i)
+	for (unsigned int i = 0; i < m_nvk2_2.size(); ++i)
 	{
 		uzel = m_nvk2_2[i];
 		Ug = GetTraction_2(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
 		f[uzel * 3 + 2] += Ug;
 	}
 
-	for (int i = 0; i < m_nvk1.size(); ++i)
+	for (unsigned int i = 0; i < m_nvk1.size(); ++i)
 	{
 		uzel = m_nvk1[i];
 		Ug = GetUg(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
@@ -632,16 +627,19 @@ void FEM::Boundary_1(int num, double Ug)
 
 double FEM::GetUg(double x, double y, double z)
 {
+	x; y; z;
 	return 0.;
 }
 
 double FEM::GetTraction_1(double x, double y, double z)
 {
+	x; y; z;
 	return 1.;
 }
 
 double FEM::GetTraction_2(double x, double y, double z)
 {
+	x; y; z;
 	return -1.;
 }
 
@@ -659,15 +657,13 @@ void FEM::PrintFigure()
 	             ", k=" << 2 << 
 	             ", F=POINT" << endl;
 
-	float value;
-	int amountOfRealStepsX = 1, amountOfRealStepsY = 1, amountOfRealStepsZ = 1;
-	bool endFindX = false, endFindY = false, endFindZ = false;
+	float value = 0;
 	vector <double> xPoints, yPoints, zPoints;
 	double startX, startY, startZ;
 	startX = m_checkMesh[0][0];
 	startY = m_checkMesh[0][1];
 	startZ = m_checkMesh[0][2];
-	for (int i = 0; i < m_checkMesh.size(); ++i)
+	for (unsigned int i = 0; i < m_checkMesh.size(); ++i)
 	{
 		if(PointBelongsToArea(m_checkMesh[i][0], m_checkMesh[i][1], m_checkMesh[i][2])) 
 			value = 1;
@@ -706,19 +702,19 @@ void FEM::PrintFigure()
 	cout << "Steps Z: " << zPoints.size() << " of " << m_amountOfStepsZ << endl;
 
 	cout << endl << "X steps:" << endl;
-	for(int i = 0; i < xPoints.size(); ++i)
+	for (unsigned int i = 0; i < xPoints.size(); ++i)
 	{
 		cout << xPoints[i] << " ";
 	}
 
 	cout << endl << "Y steps:" << endl;
-	for(int i = 0; i < yPoints.size(); ++i)
+	for (unsigned int i = 0; i < yPoints.size(); ++i)
 	{
 		cout << yPoints[i] << " ";
 	}
 
 	cout << endl << "Z steps:" << endl;
-	for(int i = 0; i < zPoints.size(); ++i)
+	for (unsigned int i = 0; i < zPoints.size(); ++i)
 	{
 		cout << zPoints[i] << " ";
 	}
@@ -770,7 +766,7 @@ void FEM::PrintFigure()
 
 void FEM::TransformMeshAfterDisplacement()
 {
-	for (int i = 0; i < m_xyz.size(); ++i)
+	for (unsigned int i = 0; i < m_xyz.size(); ++i)
 	{
 		m_xyz[i][0] = m_xyz[i][0] + xtch[i * 3    ];
 		m_xyz[i][1] = m_xyz[i][1] + xtch[i * 3 + 1];
@@ -821,7 +817,7 @@ void FEM::SetBordersOfCheckMesh(double xLeftCheckMesh, double xRightCheckMesh, d
 bool FEM::PointBelongsToArea(double x, double y, double z) const
 {
 	bool ifBelongs = false;
-	for(int i = 0; i < m_nvtr.size() && !ifBelongs; ++i)
+	for (unsigned int i = 0; i < m_nvtr.size() && !ifBelongs; ++i)
 	{
 		if(PointBelongsToParallelepiped(x, y, z, i)) ifBelongs = true;
 	}
