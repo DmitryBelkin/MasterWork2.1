@@ -1,6 +1,4 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
-
-void get_numbers(vector<int> & result, const string & s);
+void GetNumbers(std::vector<int> & result, const std::string & s);

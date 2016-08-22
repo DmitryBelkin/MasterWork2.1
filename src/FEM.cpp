@@ -51,7 +51,7 @@ void FEM::InputMesh(){
 		m_xyz.push_back(xyzBuf);
 		getline(working_area, str); // дочитал строку
 		getline(working_area, str); // считал строку с информацией о следующей вершине
-		get_numbers(numbers, str);
+		GetNumbers(numbers, str);
 		buf1 = numbers[0];
 	}
 	while(buf1 != 1);
@@ -62,7 +62,7 @@ void FEM::InputMesh(){
 	// считывание первой строки с информацией о ребре №1
 	getline(working_area, str);
 	numbers.clear();
-	get_numbers(numbers, str);
+	GetNumbers(numbers, str);
 	num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	while(num == 2) // прохожу ребра
 	{
@@ -70,7 +70,7 @@ void FEM::InputMesh(){
 		getline(working_area, str); // i     j
 		getline(working_area, str); // 177        11         2         1         7         (2)
 		numbers.clear();
-		get_numbers(numbers, str);
+		GetNumbers(numbers, str);
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 	
@@ -79,7 +79,7 @@ void FEM::InputMesh(){
 		getline(working_area, str); // i     j       k
 		getline(working_area, str); // 352        41         2         1         7         (3)
 		numbers.clear();
-		get_numbers(numbers, str);
+		GetNumbers(numbers, str);
 		num = numbers[numbers.size()-1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 	
@@ -99,7 +99,7 @@ void FEM::InputMesh(){
 		getline(working_area, str); // прочитал строку до конца
 		getline(working_area, str); // 352        41         2         1         7         (4)
 		numbers.clear();
-		get_numbers(numbers, str);
+		GetNumbers(numbers, str);
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 

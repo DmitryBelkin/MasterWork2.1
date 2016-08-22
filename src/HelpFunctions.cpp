@@ -1,28 +1,23 @@
 #include "HelpFunctions.h"
 
-void get_numbers(vector<int> & result, const string & s) {
+void GetNumbers(std::vector<int> & result, const std::string & s)
+{
 	bool found = false;
 	int number = 0;
 	bool isMinus = false;
 	
-	for (string::size_type i = 0; i < s.length(); i++)
+	for (std::string::size_type i = 0; i < s.length(); ++i)
 	{
 		const char ch = s[i];
-
 		if(ch == '-' && s[i+1] >= '0' && s[i+1] <= '9')
-		{
 			isMinus = true;
-		}
-		else
-		if (ch >= '0' && ch <= '9') 
+		else if (ch >= '0' && ch <= '9') 
 		{
 			const int digit = ch - '0';
 			number = number*10 + digit;
 			found = true;
 		}
-		else 
-		{
-			if (found) 
+		else if (found) 
 			{
 				if(isMinus == true) { number = number * (-1); }
 				result.push_back(number);
@@ -30,8 +25,8 @@ void get_numbers(vector<int> & result, const string & s) {
 				number = 0;
 				found = false;
 			}
-		}
 	}
 	
-	if (found) { result.push_back(number); }
+	if (found)
+		result.push_back(number);
 }
