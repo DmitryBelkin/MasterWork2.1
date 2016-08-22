@@ -13,11 +13,11 @@ void MCG::SetEps(const double eps) { m_eps = eps; }
 
 void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; i++) x[i] = 0;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; ++i) x[i] = 0;
+	for (int i = 0; i < n; ++i)
 	{
 		x[i] = f[i] / Df[i];
-		for (int j = ia[i]; j < ia[i + 1]; j++)
+		for (int j = ia[i]; j < ia[i + 1]; ++j)
 			x[i] = x[i] - ELf[j] * x[ ja[j] ] / Df[i];
 	}
 }
@@ -26,11 +26,11 @@ void MCG::Lx(const vector <double> ELf, const vector <double> Df, vector <double
 
 void MCG::Ux(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; i++) x[i] = 0;
+	for (int i = 0; i < n; ++i) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = x[i] + f[i];
-		for (int j = ia[i]; j  <ia[i + 1] ; j++) x[ ja[j] ] = x[ ja[j] ] - EUf[j] * x[i];
+		for (int j = ia[i]; j < ia[i + 1]; ++j) x[ ja[j] ] = x[ ja[j] ] - EUf[j] * x[i];
 	}
 }
 
@@ -38,11 +38,11 @@ void MCG::Ux(const vector <double> EUf, vector <double> &x, const vector <double
 
 void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; i++) x[i] = 0;
+	for (int i = 0; i < n; ++i) x[i] = 0;
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = (x[i] + f[i]) / Df[i];
-		for (int j = ia[i]; j < ia[i + 1]; j++) x[ ja[j] ] = x[ ja[j] ] - ELf[j] * x[i];
+		for (int j = ia[i]; j < ia[i + 1]; ++j) x[ ja[j] ] = x[ ja[j] ] - ELf[j] * x[i];
 	}
 }
 
@@ -50,11 +50,11 @@ void MCG::LTx(const vector <double> ELf, const vector <double> Df, vector <doubl
 
 void MCG::UTx(const vector <double> EUf, vector <double> &x, const vector <double> f) const
 {
-	for (int i = 0; i < n; i++) x[i] = 0;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; ++i) x[i] = 0;
+	for (int i = 0; i < n; ++i)
 	{
 		x[i] = f[i];
-		for (int j = ia[i]; j < ia[i + 1]; j++) x[i] = x[i] - EUf[j] * x[ ja[j] ];
+		for (int j = ia[i]; j < ia[i + 1]; ++j) x[i] = x[i] - EUf[j] * x[ ja[j] ];
 	}
 }
 
@@ -63,7 +63,7 @@ void MCG::UTx(const vector <double> EUf, vector <double> &x, const vector <doubl
 double MCG::ScalarProduct(const vector <double> x, const vector <double> y) const
 {
 	double temp = 0;
-	for (int i = 0; i < n; i++) temp += x[i] * y[i];
+	for (int i = 0; i < n; ++i) temp += x[i] * y[i];
 	return temp;
 }
 
@@ -75,11 +75,11 @@ double MCG::NormVector(const vector <double> x) const {	return sqrt(ScalarProduc
 
 void MCG::MultMatrixOnVector(const vector <double> EU, const vector <double> EL, const vector <double> D, const vector <double> vect, vector <double> &res) const
 {
-	for (int i = 0; i < n; i++) res[i] = 0;
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; ++i) res[i] = 0;
+	for (int i = 0; i < n; ++i)
 	{
 		res[i] = D[i] * vect[i];
-		for (int j = ia[i]; j < ia[i + 1]; j++)
+		for (int j = ia[i]; j < ia[i + 1]; ++j)
 		{
 			res[ja[j] ] = res[ja[j]] + EU[j] * vect[i];
 			res[i] = res[i] + EL[j] * vect[ja[j]];
@@ -100,7 +100,7 @@ void MCG::CreateLU()
 	L.resize(size);
 	U.resize(size);
 	LUdi.resize(n);
-	for (i = 0; i<n; i++)
+	for (i = 0; i<n; ++i)
 	{
 		sd = 0;
 		i0 = ia[i];
@@ -155,7 +155,7 @@ void MCG::MCG_LU()
 	LTx(L, LUdi, temp2, temp1);
 	MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 	UTx(U, r, temp1);
-	for (i = 0; i<n; i++) z[i] = r_[i] = r[i];
+	for (i = 0; i<n; ++i) z[i] = r_[i] = r[i];
 	t = NormVector(f);
 	norm = NormVector(r) / t;
 	cout << "NormVector(r) = " << NormVector(r) << endl;
@@ -170,13 +170,13 @@ void MCG::MCG_LU()
 		MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 		UTx(U, temp2, temp1);
 		alpha = ScalarProduct(r, r) / ScalarProduct(temp2, z);
-		for (i = 0; i<n; i++)
+		for (i = 0; i<n; ++i)
 		{
 			xtch[i] = xtch[i] + alpha*z[i];
 			r[i] = r[i] - alpha*temp2[i];
 		}
 		beta = ScalarProduct(r, r) / ScalarProduct(r_, r_);
-		for (i = 0; i < n; i++)
+		for (i = 0; i < n; ++i)
 		{
 			z[i] = r[i] + beta*z[i];
 			r_[i] = r[i];
@@ -188,7 +188,7 @@ void MCG::MCG_LU()
 	}
 	cout << endl;
 	Ux(U, temp1, xtch);
-	for (i = 0; i < n; i++) xtch[i] = temp1[i];
+	for (i = 0; i < n; ++i) xtch[i] = temp1[i];
 
 	// @todo сделать нормальный вывод
 	cout << "k = " << k << endl;
@@ -197,7 +197,7 @@ void MCG::MCG_LU()
 	ofstream out("output.txt");
 	out << "k = " << k << endl;
 	out << "norm = " << norm << endl << endl;
-	for(int i = 0; i < xtch.size(); i++)
+	for(int i = 0; i < xtch.size(); ++i)
 	{
 		out << xtch[i] << endl;
 	}
