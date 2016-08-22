@@ -106,11 +106,10 @@ void FEM::InputMesh(){
 	vector < double > bufDouble;
 	bufDouble.resize(2);
 	
-	size_t founded;
-	int amOfEl;
-
 	while (!working_area.eof())
 	{
+		size_t founded;
+		int amOfEl;
 		working_area >> buf1;
 		if(buf1 == -1) // если считал все группы
 		{
@@ -421,7 +420,7 @@ double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 
 void FEM::CreateGlobalMatrixAndRightPart()
 {
-	vector <vector <double> > KLocal, blockK;
+	vector <vector <double> > KLocal;
 	vector <double> b;
 	KLocal.resize(24);
 	b.resize(24);
@@ -659,10 +658,6 @@ void FEM::PrintFigure()
 
 	float value = 0;
 	vector <double> xPoints, yPoints, zPoints;
-	double startX, startY, startZ;
-	startX = m_checkMesh[0][0];
-	startY = m_checkMesh[0][1];
-	startZ = m_checkMesh[0][2];
 	for (unsigned int i = 0; i < m_checkMesh.size(); ++i)
 	{
 		if(PointBelongsToArea(m_checkMesh[i][0], m_checkMesh[i][1], m_checkMesh[i][2])) 
