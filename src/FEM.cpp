@@ -8,8 +8,8 @@
 
 using namespace std;
 
-#define INPUT_MESH_NAME "../resources/input_meshes/mesh_name.txt"
-#define INPUT_SLAU_PARAMETERS "../resources/input_meshes/slau_parameters.txt"
+#define INPUT_MESH_NAME           "../resources/input_meshes/mesh_name.txt"
+#define INPUT_SLAU_PARAMETERS     "../resources/input_meshes/slau_parameters.txt"
 #define INPUT_ELASTITY_PARAMETERS "../resources/input_meshes/elastity_parameters.txt"
 
 void FEM::Input(){
@@ -39,7 +39,7 @@ void FEM::InputMesh(){
 	int num;
 
 	// считывание первых строк, не несущих  информации о сетке
-	for(int i = 0; i < 19; i++) { getline(working_area, str); }
+	for(int i = 0; i < 19; ++i) { getline(working_area, str); }
 	// считывание первой строки с информацией о вершине №1
 	getline(working_area, str);
 
@@ -57,7 +57,7 @@ void FEM::InputMesh(){
 	while(buf1 != 1);
 	
 	// считывание 2 строк, не несущих  информации о сетке
-	for(int i = 0; i < 2; i++) { getline(working_area, str); }
+	for(int i = 0; i < 2; ++i) { getline(working_area, str); }
 	
 	// считывание первой строки с информацией о ребре №1
 	getline(working_area, str);
@@ -103,7 +103,7 @@ void FEM::InputMesh(){
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 
-	for(int i = 0; i < 2; i++) { getline(working_area, str); }
+	for(int i = 0; i < 2; ++i) { getline(working_area, str); }
 	
 	vector < double > bufDouble;
 	bufDouble.resize(2);
@@ -127,7 +127,7 @@ void FEM::InputMesh(){
 		if(founded!=std::string::npos)
 		{
 			numbers.clear();
-			for(int i = 0; i < amOfEl; i++)
+			for(int i = 0; i < amOfEl; ++i)
 			{
 				working_area >> buf1 >> buf2 >> buf1 >> buf1;
 				m_nvk1.push_back(buf2 - 1);
@@ -139,7 +139,7 @@ void FEM::InputMesh(){
 			if(founded!=std::string::npos)
 			{
 				numbers.clear();
-				for(int i = 0; i < amOfEl; i++)
+				for(int i = 0; i < amOfEl; ++i)
 				{
 					working_area >> buf1 >> buf2 >> buf1 >> buf1;
 					m_nvk2_1.push_back(buf2 - 1);
@@ -151,7 +151,7 @@ void FEM::InputMesh(){
 				if(founded!=std::string::npos)
 				{
 					numbers.clear();
-					for(int i = 0; i < amOfEl; i++)
+					for(int i = 0; i < amOfEl; ++i)
 					{
 						working_area >> buf1 >> buf2 >> buf1 >> buf1;
 						m_nvk2_2.push_back(buf2 - 1);
@@ -198,34 +198,34 @@ void FEM::GenerateMatrixProfle()
 	// для связей степеней свободы в каждом блоке K (для каждой базисной функции в узле)
 	vector <int> degrees;
 	degrees.resize(3);
-	for(int i = 0; i < m_xyz.size(); i++)
+	for(int i = 0; i < m_xyz.size(); ++i)
 	{
 		degrees[0] = i * 3    ;
 		degrees[1] = i * 3 + 1;
 		degrees[2] = i * 3 + 2;
 		AddDegree(degrees);
 	}
-	for (int i = 0; i < m_elemAmount; i++)
+	for (int i = 0; i < m_elemAmount; ++i)
 	{
 		AddNvtr(m_nvtr[i]);
 	}
-	for (int i = 0; i < n; i++)
+	for (int i = 0; i < n; ++i)
 	{
 		sort(ig[i].begin(), ig[i].begin() + ig[i].size());
 	}
 	ia.clear();
 	ia.resize(n + 1);
 	ia[0] = 0;
-	for (int i = 1; i < n + 1; i++)
+	for (int i = 1; i < n + 1; ++i)
 	{
 		ia[i] = ia[i - 1] + ig[i - 1].size();
 	}
 	ja.clear();
 	ja.resize(ia[n]);
 	int i = 0;
-	for (int j = 0; j < n; j++)
+	for (int j = 0; j < n; ++j)
 	{
-		for (int k = 0; k < ig[j].size(); k++, i++)
+		for (int k = 0; k < ig[j].size(); ++k, ++i)
 		{
 			ja[i] = ig[j][k];
 		}
@@ -239,11 +239,11 @@ void FEM::GenerateMatrixProfle()
 void FEM::AddNvtr(vector <int> &mtr)
 {
 	int ki, kj;
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
-		for (int j = 0; j < 8; j++)
+		for (int j = 0; j < 8; ++j)
 		{
-			for(int shift = 0; shift < 3; shift++)
+			for(int shift = 0; shift < 3; ++shift)
 			{
 				ki = mtr[i]; ki = ki * 3 + shift;
 				kj = mtr[j]; kj = kj * 3 + shift;
@@ -270,9 +270,9 @@ void FEM::AddNvtr(vector <int> &mtr)
 void FEM::AddDegree(vector <int> &mtr)
 {
 	int ki, kj;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; ++i)
 	{
-		for (int j = 0; j < 3; j++)
+		for (int j = 0; j < 3; ++j)
 		{
 			ki = mtr[i];
 			kj = mtr[j];
@@ -429,12 +429,12 @@ void FEM::CreateGlobalMatrixAndRightPart()
 	KLocal.resize(24);
 	b.resize(24);
 
-	for (int i = 0; i < 24; i++)
+	for (int i = 0; i < 24; ++i)
 	{
 		KLocal[i].resize(24);
 	}
 
-	for (int i = 0; i < m_nvtr.size(); i++)
+	for (int i = 0; i < m_nvtr.size(); ++i)
 	{
 		GenerateLocalStiffnessMatrix(i, KLocal);
 		AddLocalToGlobal(m_nvtr[i], KLocal, b);
@@ -478,23 +478,23 @@ void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &K
 {
 	vector <vector <double> > LocalBlockK;
 	LocalBlockK.resize(3);
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 3; ++i)
 	{
 		LocalBlockK[i].resize(3);
 	}
 
-	for(int i = 0; i < 8; i++)
+	for(int i = 0; i < 8; ++i)
 	{
-		for(int j = i; j < 8; j++)
+		for(int j = i; j < 8; ++j)
 		{
 			GenerateLocalBlockK(i + 1, j + 1, numNvtr, LocalBlockK);
 			AddBlockToLocalStiffnessMatrix(i, j, KLocal, LocalBlockK);
 		}
 	}
 
-	for(int i = 0; i < 24; i++)
+	for(int i = 0; i < 24; ++i)
 	{
-		for(int j = 0; j < i; j++)
+		for(int j = 0; j < i; ++j)
 		{
 			KLocal[i][j] = KLocal[j][i];
 		}
@@ -520,8 +520,8 @@ void FEM::GenerateLocalBlockK(int numi, int numj, int numNvtr, vector <vector <d
 	                                                                                                                          LocalBlockK[2][2] = dz1 * dz2 + b * (dx1 * dx2 + dy1 * dy2);
 
 	// @todo проверить интеграл. В данном случае из-за линыйности бф - считается просто объём элемента
-	for(int i = 0; i < 3; i++)
-		for(int j = 0; j < i; j++)
+	for(int i = 0; i < 3; ++i)
+		for(int j = 0; j < i; ++j)
 		{
 			LocalBlockK[j][i] *= VolumeOfParallelepiped(numNvtr) * koeff;
 			LocalBlockK[i][j]  = LocalBlockK[j][i];
@@ -539,9 +539,9 @@ double FEM::VolumeOfParallelepiped(int numNvtr) const
 
 void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <double> > &KLocal , vector <vector <double> > &LocalBlockK) const
 {
-	for(int i = 0; i < 3; i++)
+	for(int i = 0; i < 3; ++i)
 	{
-		for(int j = i; j < 3; j++)
+		for(int j = i; j < 3; ++j)
 		{
 			assert(numi * 3 + i < 24 && numj * 3 + j < 24);
 			KLocal[numi * 3 + i][numj * 3 + j] = LocalBlockK[i][j];
@@ -553,15 +553,15 @@ void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vec
 {
 	int k, ki, kj;
 
-	for (int i = 0; i < 8; i++)
+	for (int i = 0; i < 8; ++i)
 	{
-		for(int shift = 0; shift < 3; shift++)
+		for(int shift = 0; shift < 3; ++shift)
 		{
 			ki = mtrx[i]; ki *= 3; ki += shift;
 
 			assert(ki < di.size()); di[ki] += K[i * 3 + shift][i * 3 + shift];
 			assert(ki < f.size()) ;  f[ki] += b[i * 3 + shift]               ;
-			for (int j = 0; j < i; j++)
+			for (int j = 0; j < i; ++j)
 			{
 				kj = mtrx[j]; kj *= 3; kj += shift;
 
@@ -574,7 +574,7 @@ void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vec
 
 				while (ja[k] != kj)
 				{
-					k++;
+					++k;
 					assert(k < ja.size());
 				}
 				assert(k < ggl.size()); ggl[k] += K[i * 3 + shift][j * 3 + shift];
@@ -590,7 +590,7 @@ void FEM::BoundaryConditions()
 	double Ug;
 
 	// вторые краевые на одной грани (сверху)
-	for (int i = 0; i < m_nvk2_1.size(); i++)
+	for (int i = 0; i < m_nvk2_1.size(); ++i)
 	{
 		uzel = m_nvk2_1[i];
 		Ug = GetTraction_1(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
@@ -598,18 +598,18 @@ void FEM::BoundaryConditions()
 	}
 
 	// вторые краевые на одной грани (снизу)
-	for (int i = 0; i < m_nvk2_2.size(); i++)
+	for (int i = 0; i < m_nvk2_2.size(); ++i)
 	{
 		uzel = m_nvk2_2[i];
 		Ug = GetTraction_2(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
 		f[uzel * 3 + 2] += Ug;
 	}
 
-	for (int i = 0; i < m_nvk1.size(); i++)
+	for (int i = 0; i < m_nvk1.size(); ++i)
 	{
 		uzel = m_nvk1[i];
 		Ug = GetUg(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
-		for(int shift = 0; shift < 3; shift++)
+		for(int shift = 0; shift < 3; ++shift)
 		{
 			Boundary_1(uzel * 3 + shift, Ug);
 		}
@@ -667,7 +667,7 @@ void FEM::PrintFigure()
 	startX = m_checkMesh[0][0];
 	startY = m_checkMesh[0][1];
 	startZ = m_checkMesh[0][2];
-	for (int i = 0; i < m_checkMesh.size(); i++)
+	for (int i = 0; i < m_checkMesh.size(); ++i)
 	{
 		if(PointBelongsToArea(m_checkMesh[i][0], m_checkMesh[i][1], m_checkMesh[i][2])) 
 			value = 1;
@@ -706,19 +706,19 @@ void FEM::PrintFigure()
 	cout << "Steps Z: " << zPoints.size() << " of " << m_amountOfStepsZ << endl;
 
 	cout << endl << "X steps:" << endl;
-	for(int i = 0; i < xPoints.size(); i++)
+	for(int i = 0; i < xPoints.size(); ++i)
 	{
 		cout << xPoints[i] << " ";
 	}
 
 	cout << endl << "Y steps:" << endl;
-	for(int i = 0; i < yPoints.size(); i++)
+	for(int i = 0; i < yPoints.size(); ++i)
 	{
 		cout << yPoints[i] << " ";
 	}
 
 	cout << endl << "Z steps:" << endl;
-	for(int i = 0; i < zPoints.size(); i++)
+	for(int i = 0; i < zPoints.size(); ++i)
 	{
 		cout << zPoints[i] << " ";
 	}
@@ -770,7 +770,7 @@ void FEM::PrintFigure()
 
 void FEM::TransformMeshAfterDisplacement()
 {
-	for (int i = 0; i < m_xyz.size(); i++)
+	for (int i = 0; i < m_xyz.size(); ++i)
 	{
 		m_xyz[i][0] = m_xyz[i][0] + xtch[i * 3    ];
 		m_xyz[i][1] = m_xyz[i][1] + xtch[i * 3 + 1];
@@ -792,11 +792,11 @@ void FEM::GenerateMeshForCheck()
 
 	vector <double> bufCheckMesh; bufCheckMesh.resize(3);
 
-	for(int k = 0; k < m_amountOfStepsZ; k++)
+	for(int k = 0; k < m_amountOfStepsZ; ++k)
 	{
-		for(int j = 0; j < m_amountOfStepsY; j++)
+		for(int j = 0; j < m_amountOfStepsY; ++j)
 		{
-			for(int i = 0; i < m_amountOfStepsX; i++)
+			for(int i = 0; i < m_amountOfStepsX; ++i)
 			{
 				bufCheckMesh[0] = m_xLeftCheckMesh + xStep * i;
 				bufCheckMesh[1] = m_yLeftCheckMesh + yStep * j;
@@ -821,7 +821,7 @@ void FEM::SetBordersOfCheckMesh(double xLeftCheckMesh, double xRightCheckMesh, d
 bool FEM::PointBelongsToArea(double x, double y, double z) const
 {
 	bool ifBelongs = false;
-	for(int i = 0; i < m_nvtr.size() && !ifBelongs; i++)
+	for(int i = 0; i < m_nvtr.size() && !ifBelongs; ++i)
 	{
 		if(PointBelongsToParallelepiped(x, y, z, i)) ifBelongs = true;
 	}
