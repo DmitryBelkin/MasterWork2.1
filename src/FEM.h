@@ -35,7 +35,7 @@ public:
 	// methods
 	void   Input();
 	void   InputMesh();
-	void   InputSlauParameters();
+	void   InputSlaeParameters();
 	void   InputElastityParameters();
 
 	void   SolveProblem();

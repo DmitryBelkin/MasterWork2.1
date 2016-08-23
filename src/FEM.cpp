@@ -6,14 +6,17 @@
 
 using namespace std;
 
-#define DOF 3
-const string inputMeshName           = "../resources/input_meshes/mesh_name.txt";
-const string inputSlaeParameters     = "../resources/input_meshes/slau_parameters.txt";
-const string inputElastityParameters = "../resources/input_meshes/elastity_parameters.txt";
+#define DOF             3
+#define DOF_ELEM        8
+#define LOCAL_DIMENSION DOF*DOF_ELEM
+const string inputPrefix             = "../resources/input_meshes/";
+const string inputMeshName           = inputPrefix + "mesh_name.txt";
+const string inputSlaeParameters     = inputPrefix + "slau_parameters.txt";
+const string inputElastityParameters = inputPrefix + "elastity_parameters.txt";
 
 void FEM::Input(){
 	InputMesh              ();
-	InputSlauParameters    ();
+	InputSlaeParameters    ();
 	InputElastityParameters();
 }
 
@@ -24,19 +27,18 @@ void FEM::InputMesh(){
 	mesh_name >> meshName;
 	mesh_name.close();
 
-	strcpy_s(meshWay , "../resources/input_meshes/");
-	strcat_s(meshName, ".unv");
-	strcat_s(meshWay , meshName);
-
-	ifstream WorkingArea(meshWay);
+	strcpy_s(meshWay , inputPrefix.c_str());
+	strcat_s(meshName, ".unv"             );
+	strcat_s(meshWay , meshName           );
 
 	vector <int> numbers;
-	vector <int> nvtrBuf; nvtrBuf.resize(8);
+	vector <int> nvtrBuf(DOF_ELEM);
 	vector <double> xyzBuf(DOF);
 	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8;
 	int num;
-
 	string str;
+
+	ifstream WorkingArea(meshWay);
 	// считывание первых строк, не несущих  информации о сетке
 	for(int i = 0; i < 19; ++i) { getline(WorkingArea, str); }
 	// считывание первой строки с информацией о вершине №1
@@ -110,9 +112,7 @@ void FEM::InputMesh(){
 		int amOfEl;
 		WorkingArea >> buf1;
 		if(buf1 == -1) // если считал все группы
-		{
 			break;     // то выйти
-		}
 		WorkingArea >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf2;
 		amOfEl = buf2;
 		getline(WorkingArea, str);
@@ -166,18 +166,18 @@ void FEM::InputMesh(){
 	cout << "============================================================================= " << endl << endl;
 }
 
-void FEM::InputSlauParameters()
+void FEM::InputSlaeParameters()
 {
-	ifstream slau_parameters(inputSlaeParameters);
-	slau_parameters >> m_eps >> m_maxiter;
-	slau_parameters.close();
+	ifstream slaeParameters(inputSlaeParameters);
+	slaeParameters >> m_eps >> m_maxiter;
+	slaeParameters.close();
 }
 
 void FEM::InputElastityParameters()
 {
-	ifstream elastity_parameters(inputElastityParameters);
-	elastity_parameters >> m_nu >> m_E;
-	elastity_parameters.close();
+	ifstream elastityParameters(inputElastityParameters);
+	elastityParameters >> m_nu >> m_E;
+	elastityParameters.close();
 }
 
 void FEM::SolveProblem()
@@ -234,9 +234,9 @@ void FEM::GenerateMatrixProfle()
 void FEM::AddNvtr(vector <int> &mtr)
 {
 	int ki, kj;
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < DOF_ELEM; ++i)
 	{
-		for (int j = 0; j < 8; ++j)
+		for (int j = 0; j < DOF_ELEM; ++j)
 		{
 			for (int shift = 0; shift < DOF; ++shift)
 			{
@@ -407,10 +407,8 @@ double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 
 void FEM::CreateGlobalMatrixAndRightPart()
 {
-	vector < vector <double> > KLocal;
-	vector <double> b;
-	KLocal.resize(24);
-	b.resize(24);
+	vector < vector <double> > KLocal(24);
+	vector <double> b(24);
 
 	for (int i = 0; i < 24; ++i)
 	{
@@ -463,9 +461,9 @@ void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &K
 		LocalBlockK[i].resize(DOF);
 	}
 
-	for(int i = 0; i < 8; ++i)
+	for(int i = 0; i < DOF_ELEM; ++i)
 	{
-		for(int j = i; j < 8; ++j)
+		for(int j = i; j < DOF_ELEM; ++j)
 		{
 			GenerateLocalBlockK(i + 1, j + 1, numNvtr, LocalBlockK);
 			AddBlockToLocalStiffnessMatrix(i, j, KLocal, LocalBlockK);
@@ -532,7 +530,7 @@ void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <dou
 void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vector <double> &b)
 {
 	int k, ki, kj;
-	for (int i = 0; i < 8; ++i)
+	for (int i = 0; i < DOF_ELEM; ++i)
 	{
 		for (int shift = 0; shift < DOF; ++shift)
 		{
@@ -769,7 +767,7 @@ void FEM::GenerateMeshForCheck()
 	const double yStep = (m_yRightCheckMesh - m_yLeftCheckMesh) / static_cast<double>(m_amountOfStepsY);
 	const double zStep = (m_zRightCheckMesh - m_zLeftCheckMesh) / static_cast<double>(m_amountOfStepsZ);
 
-	vector <double> bufCheckMesh; bufCheckMesh.resize(3);
+	vector <double> bufCheckMesh(DOF);
 
 	for (unsigned int k = 0; k < m_amountOfStepsZ; ++k)
 	{
