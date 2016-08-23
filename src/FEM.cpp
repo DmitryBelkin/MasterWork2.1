@@ -6,6 +6,7 @@
 
 using namespace std;
 
+#define DOF 3
 const string inputMeshName           = "../resources/input_meshes/mesh_name.txt";
 const string inputSlaeParameters     = "../resources/input_meshes/slau_parameters.txt";
 const string inputElastityParameters = "../resources/input_meshes/elastity_parameters.txt";
@@ -31,7 +32,7 @@ void FEM::InputMesh(){
 
 	vector <int> numbers;
 	vector <int> nvtrBuf; nvtrBuf.resize(8);
-	vector <double> xyzBuf; xyzBuf.resize(3);
+	vector <double> xyzBuf(DOF);
 	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8;
 	int num;
 
@@ -191,13 +192,12 @@ void FEM::SolveProblem()
 void FEM::GenerateMatrixProfle()
 {
 	// для связей степеней свободы в каждом блоке K (для каждой базисной функции в узле)
-	vector <int> degrees;
-	degrees.resize(3);
+	vector <int> degrees(DOF);
 	for (unsigned int i = 0; i < m_xyz.size(); ++i)
 	{
-		degrees[0] = i * 3    ;
-		degrees[1] = i * 3 + 1;
-		degrees[2] = i * 3 + 2;
+		degrees[0] = i * DOF;
+		degrees[1] = i * DOF + 1;
+		degrees[2] = i * DOF + 2;
 		AddDegree(degrees);
 	}
 	for (unsigned int i = 0; i < m_elemAmount; ++i)
@@ -238,10 +238,10 @@ void FEM::AddNvtr(vector <int> &mtr)
 	{
 		for (int j = 0; j < 8; ++j)
 		{
-			for(int shift = 0; shift < 3; ++shift)
+			for (int shift = 0; shift < DOF; ++shift)
 			{
-				ki = mtr[i]; ki = ki * 3 + shift;
-				kj = mtr[j]; kj = kj * 3 + shift;
+				ki = mtr[i]; ki = ki * DOF + shift;
+				kj = mtr[j]; kj = kj * DOF + shift;
 				if (ki > kj)
 				{
 					bool finded = false;
@@ -265,9 +265,9 @@ void FEM::AddNvtr(vector <int> &mtr)
 void FEM::AddDegree(vector <int> &mtr)
 {
 	int ki, kj;
-	for (int i = 0; i < 3; ++i)
+	for (int i = 0; i < DOF; ++i)
 	{
-		for (int j = 0; j < 3; ++j)
+		for (int j = 0; j < DOF; ++j)
 		{
 			ki = mtr[i];
 			kj = mtr[j];
@@ -433,9 +433,9 @@ void FEM::CreateGlobalMatrixAndRightPart()
 void FEM::SetDefault()
 {
 	m_elemAmount = m_nvtr.size();
-	n            = 3 * m_xyz.size(); // на каждую вершину приходится по 3 смещения (по трём направлениям)
+	// на каждую вершину приходится по 3 (DOF = 3) смещения (по трём направлениям)
+	n = DOF * m_xyz.size();
 
-	// @todo проверить очищает ли resize буфер
 	ig.clear  ();
 	f.clear   ();
 	di.clear  ();
@@ -457,11 +457,10 @@ void FEM::SetDefault()
 
 void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &KLocal) const
 {
-	vector <vector <double> > LocalBlockK;
-	LocalBlockK.resize(3);
-	for (int i = 0; i < 3; ++i)
+	vector <vector <double> > LocalBlockK(DOF);
+	for (int i = 0; i < LocalBlockK.size(); ++i)
 	{
-		LocalBlockK[i].resize(3);
+		LocalBlockK[i].resize(DOF);
 	}
 
 	for(int i = 0; i < 8; ++i)
@@ -501,7 +500,7 @@ void FEM::GenerateLocalBlockK(int numi, int numj, int numNvtr, vector <vector <d
 	                                                                                                                          LocalBlockK[2][2] = dz1 * dz2 + b * (dx1 * dx2 + dy1 * dy2);
 
 	// @todo проверить интеграл. В данном случае из-за линыйности бф - считается просто объём элемента
-	for(int i = 0; i < 3; ++i)
+	for(int i = 0; i < DOF; ++i)
 		for(int j = 0; j < i; ++j)
 		{
 			LocalBlockK[j][i] *= VolumeOfParallelepiped(numNvtr) * koeff;
@@ -520,12 +519,12 @@ double FEM::VolumeOfParallelepiped(int numNvtr) const
 
 void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <double> > &KLocal , vector <vector <double> > &LocalBlockK) const
 {
-	for(int i = 0; i < 3; ++i)
+	for (int i = 0; i < DOF; ++i)
 	{
-		for(int j = i; j < 3; ++j)
+		for (int j = i; j < DOF; ++j)
 		{
-			assert(numi * 3 + i < 24 && numj * 3 + j < 24);
-			KLocal[numi * 3 + i][numj * 3 + j] = LocalBlockK[i][j];
+			assert( ((numi * DOF + i) < 24) && ((numj * DOF + j) < 24) );
+			KLocal[numi * DOF + i][numj * DOF + j] = LocalBlockK[i][j];
 		}
 	}
 }
@@ -533,18 +532,17 @@ void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <dou
 void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vector <double> &b)
 {
 	int k, ki, kj;
-
 	for (int i = 0; i < 8; ++i)
 	{
-		for(int shift = 0; shift < 3; ++shift)
+		for (int shift = 0; shift < DOF; ++shift)
 		{
-			ki = mtrx[i]; ki *= 3; ki += shift;
+			ki = mtrx[i]; ki *= DOF; ki += shift;
 
-			assert(ki < di.size()); di[ki] += K[i * 3 + shift][i * 3 + shift];
-			assert(ki < f.size()) ;  f[ki] += b[i * 3 + shift]               ;
+			assert(ki < di.size()); di[ki] += K[i * DOF + shift][i * DOF + shift];
+			assert(ki < f.size()) ;  f[ki] += b[i * DOF + shift]                 ;
 			for (int j = 0; j < i; ++j)
 			{
-				kj = mtrx[j]; kj *= 3; kj += shift;
+				kj = mtrx[j]; kj *= DOF; kj += shift;
 				if (ki > kj) { assert(ki < ia.size()); k = ia[ki]; }
 				else
 				{
@@ -557,8 +555,8 @@ void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vec
 					++k;
 					assert(k < ja.size());
 				}
-				assert(k < ggl.size()); ggl[k] += K[i * 3 + shift][j * 3 + shift];
-				                        ggu[k] += K[i * 3 + shift][j * 3 + shift];
+				assert(k < ggl.size()); ggl[k] += K[i * DOF + shift][j * DOF + shift];
+				                        ggu[k] += K[i * DOF + shift][j * DOF + shift];
 			}
 		}
 	}
@@ -574,7 +572,7 @@ void FEM::BoundaryConditions()
 	{
 		uzel = m_nvk2_1[i];
 		Ug = GetTraction_1(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
-		f[uzel * 3 + 2] += Ug;
+		f[uzel * DOF + 2] += Ug;
 	}
 
 	// вторые краевые на одной грани (снизу)
@@ -582,16 +580,16 @@ void FEM::BoundaryConditions()
 	{
 		uzel = m_nvk2_2[i];
 		Ug = GetTraction_2(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
-		f[uzel * 3 + 2] += Ug;
+		f[uzel * DOF + 2] += Ug;
 	}
 
 	for (unsigned int i = 0; i < m_nvk1.size(); ++i)
 	{
 		uzel = m_nvk1[i];
 		Ug = GetUg(m_xyz[uzel][0], m_xyz[uzel][1], m_xyz[uzel][2]);
-		for(int shift = 0; shift < 3; ++shift)
+		for (int shift = 0; shift < DOF; ++shift)
 		{
-			Boundary_1(uzel * 3 + shift, Ug);
+			Boundary_1(uzel * DOF + shift, Ug);
 		}
 	}
 }
@@ -753,9 +751,9 @@ void FEM::TransformMeshAfterDisplacement()
 {
 	for (unsigned int i = 0; i < m_xyz.size(); ++i)
 	{
-		m_xyz[i][0] = m_xyz[i][0] + xtch[i * 3    ];
-		m_xyz[i][1] = m_xyz[i][1] + xtch[i * 3 + 1];
-		m_xyz[i][2] = m_xyz[i][2] + xtch[i * 3 + 2];
+		m_xyz[i][0] = m_xyz[i][0] + xtch[i * DOF    ];
+		m_xyz[i][1] = m_xyz[i][1] + xtch[i * DOF + 1];
+		m_xyz[i][2] = m_xyz[i][2] + xtch[i * DOF + 2];
 	}
 }
 
