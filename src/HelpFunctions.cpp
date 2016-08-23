@@ -1,5 +1,7 @@
 #include "HelpFunctions.h"
 
+//...........................................................................
+
 void GetNumbers(std::vector<int> & result, const std::string & s)
 {
 	bool found = false;
@@ -30,3 +32,5 @@ void GetNumbers(std::vector<int> & result, const std::string & s)
 	if (found)
 		result.push_back(number);
 }
+
+//...........................................................................

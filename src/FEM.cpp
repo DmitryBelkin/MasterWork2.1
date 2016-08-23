@@ -14,11 +14,15 @@ const string inputMeshName           = inputPrefix + "mesh_name.txt";
 const string inputSlaeParameters     = inputPrefix + "slau_parameters.txt";
 const string inputElastityParameters = inputPrefix + "elastity_parameters.txt";
 
+//...........................................................................
+
 void FEM::Input(){
 	InputMesh              ();
 	InputSlaeParameters    ();
 	InputElastityParameters();
 }
+
+//...........................................................................
 
 void FEM::InputMesh(){
 	char meshWay[100], meshName[100];
@@ -166,6 +170,8 @@ void FEM::InputMesh(){
 	cout << "============================================================================= " << endl << endl;
 }
 
+//...........................................................................
+
 void FEM::InputSlaeParameters()
 {
 	ifstream slaeParameters(inputSlaeParameters);
@@ -173,12 +179,16 @@ void FEM::InputSlaeParameters()
 	slaeParameters.close();
 }
 
+//...........................................................................
+
 void FEM::InputElastityParameters()
 {
 	ifstream elastityParameters(inputElastityParameters);
 	elastityParameters >> m_nu >> m_E;
 	elastityParameters.close();
 }
+
+//...........................................................................
 
 void FEM::SolveProblem()
 {
@@ -188,6 +198,8 @@ void FEM::SolveProblem()
 	CreateGlobalMatrixAndRightPart();
 	MCG_LU();
 }
+
+//...........................................................................
 
 void FEM::GenerateMatrixProfle()
 {
@@ -231,6 +243,8 @@ void FEM::GenerateMatrixProfle()
 	cout << "=================<> Matrix profle was created successfully! <>================= " << endl;
 }
 
+//...........................................................................
+
 void FEM::AddNvtr(vector <int> &mtr)
 {
 	int ki, kj;
@@ -262,6 +276,8 @@ void FEM::AddNvtr(vector <int> &mtr)
 	}
 }
 
+//...........................................................................
+
 void FEM::AddDegree(vector <int> &mtr)
 {
 	int ki, kj;
@@ -290,6 +306,8 @@ void FEM::AddDegree(vector <int> &mtr)
 	}
 }
 
+//...........................................................................
+
 double FEM::X(int k, double x, int numNvtr) const
 {
 	const double xLeft  = m_xyz[ m_nvtr[numNvtr][0] ][0];
@@ -305,6 +323,8 @@ double FEM::X(int k, double x, int numNvtr) const
 	}
 	return localBasisFunctionValue;
 }
+
+//...........................................................................
 
 double FEM::Y(int k, double y, int numNvtr) const
 {
@@ -322,6 +342,8 @@ double FEM::Y(int k, double y, int numNvtr) const
 	return localBasisFunctionValue;
 }
 
+//...........................................................................
+
 double FEM::Z(int k, double z, int numNvtr) const
 {
 	const double zLeft  = m_xyz[ m_nvtr[numNvtr][0] ][2];
@@ -337,6 +359,8 @@ double FEM::Z(int k, double z, int numNvtr) const
 	}
 	return localBasisFunctionValue;
 }
+
+//...........................................................................
 
 double FEM::DerivativeX(int num, int numNvtr) const
 {
@@ -355,6 +379,8 @@ double FEM::DerivativeX(int num, int numNvtr) const
 	return localBasisFunctionDerivative;
 }
 
+//...........................................................................
+
 double FEM::DerivativeY(int num, int numNvtr) const
 {
 	const int k = abs((((num - 1) / 2) % 2) + 1);
@@ -371,6 +397,8 @@ double FEM::DerivativeY(int num, int numNvtr) const
 	}
 	return localBasisFunctionDerivative;
 }
+
+//...........................................................................
 
 double FEM::DerivativeZ(int num, int numNvtr) const
 {
@@ -389,6 +417,8 @@ double FEM::DerivativeZ(int num, int numNvtr) const
 	return localBasisFunctionDerivative;
 }
 
+//...........................................................................
+
 double FEM::ThreeLinearFunctionValue(int k, double x, double y, double z, int numNvtr) const
 {
 	const int a = ((k - 1) % 2) + 1;
@@ -397,6 +427,8 @@ double FEM::ThreeLinearFunctionValue(int k, double x, double y, double z, int nu
 	return X(a, x, numNvtr) * Y(b, y, numNvtr) * Z(c, z, numNvtr);
 }
 
+//...........................................................................
+
 double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 {
 	const int a = ((k - 1) % 2) + 1;
@@ -404,6 +436,8 @@ double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 	const int c = abs((k - 1) / 4 + 1);
 	return DerivativeX(a, numNvtr) * DerivativeY(b, numNvtr) * DerivativeZ(c, numNvtr);
 }
+
+//...........................................................................
 
 void FEM::CreateGlobalMatrixAndRightPart()
 {
@@ -427,6 +461,8 @@ void FEM::CreateGlobalMatrixAndRightPart()
 
 	cout << "====================<> Boundary conditions considered! <>==================== " << endl;
 }
+
+//...........................................................................
 
 void FEM::SetDefault()
 {
@@ -453,10 +489,12 @@ void FEM::SetDefault()
 	temp.resize(n);
 }
 
+//...........................................................................
+
 void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &KLocal) const
 {
 	vector <vector <double> > LocalBlockK(DOF);
-	for (int i = 0; i < LocalBlockK.size(); ++i)
+	for (int i = 0; i < DOF; ++i)
 	{
 		LocalBlockK[i].resize(DOF);
 	}
@@ -478,6 +516,8 @@ void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &K
 		}
 	}
 }
+
+//...........................................................................
 
 void FEM::GenerateLocalBlockK(int numi, int numj, int numNvtr, vector <vector <double> > &LocalBlockK) const
 {
@@ -506,6 +546,8 @@ void FEM::GenerateLocalBlockK(int numi, int numj, int numNvtr, vector <vector <d
 		}
 }
 
+//...........................................................................
+
 double FEM::VolumeOfParallelepiped(int numNvtr) const
 {
 	const double xLength = m_xyz[ m_nvtr[numNvtr][1] ][0] - m_xyz[ m_nvtr[numNvtr][0] ][0];
@@ -514,6 +556,8 @@ double FEM::VolumeOfParallelepiped(int numNvtr) const
 
 	return xLength * yLength * zLength;
 }
+
+//...........................................................................
 
 void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <double> > &KLocal , vector <vector <double> > &LocalBlockK) const
 {
@@ -526,6 +570,8 @@ void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <dou
 		}
 	}
 }
+
+//...........................................................................
 
 void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vector <double> &b)
 {
@@ -560,6 +606,8 @@ void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vec
 	}
 }
 
+//...........................................................................
+
 void FEM::BoundaryConditions()
 {
 	int uzel;
@@ -592,6 +640,8 @@ void FEM::BoundaryConditions()
 	}
 }
 
+//...........................................................................
+
 void FEM::Boundary_1(int num, double Ug)
 {
 	int j = 0;
@@ -606,11 +656,15 @@ void FEM::Boundary_1(int num, double Ug)
 		ggl[j] = 0;
 }
 
+//...........................................................................
+
 double FEM::GetUg(double x, double y, double z)
 {
 	x; y; z;
 	return 0.;
 }
+
+//...........................................................................
 
 double FEM::GetTraction_1(double x, double y, double z)
 {
@@ -618,11 +672,15 @@ double FEM::GetTraction_1(double x, double y, double z)
 	return 1.;
 }
 
+//...........................................................................
+
 double FEM::GetTraction_2(double x, double y, double z)
 {
 	x; y; z;
 	return -1.;
 }
+
+//...........................................................................
 
 void FEM::PrintFigure()
 {
@@ -745,6 +803,8 @@ void FEM::PrintFigure()
 	Figure.close();
 }
 
+//...........................................................................
+
 void FEM::TransformMeshAfterDisplacement()
 {
 	for (unsigned int i = 0; i < m_xyz.size(); ++i)
@@ -754,6 +814,8 @@ void FEM::TransformMeshAfterDisplacement()
 		m_xyz[i][2] = m_xyz[i][2] + xtch[i * DOF + 2];
 	}
 }
+
+//...........................................................................
 
 void FEM::GenerateMeshForCheck()
 {
@@ -784,6 +846,8 @@ void FEM::GenerateMeshForCheck()
 	}
 }
 
+//...........................................................................
+
 void FEM::SetBordersOfCheckMesh(double xLeftCheckMesh, double xRightCheckMesh, double yLeftCheckMesh, double yRightCheckMesh, double zLeftCheckMesh, double zRightCheckMesh)
 {
 	m_xLeftCheckMesh  = xLeftCheckMesh ;
@@ -793,6 +857,8 @@ void FEM::SetBordersOfCheckMesh(double xLeftCheckMesh, double xRightCheckMesh, d
 	m_zLeftCheckMesh  = zLeftCheckMesh ;
 	m_zRightCheckMesh = zRightCheckMesh;
 }
+
+//...........................................................................
 
 bool FEM::PointBelongsToArea(double x, double y, double z) const
 {
@@ -805,6 +871,8 @@ bool FEM::PointBelongsToArea(double x, double y, double z) const
 	return ifBelongs;
 }
 
+//...........................................................................
+
 bool FEM::PointBelongsToParallelepiped(double x, double y, double z, int numNvtr) const
 {
 	if(    x >= m_xyz[ m_nvtr[numNvtr][0] ][0] && x <= m_xyz[ m_nvtr[numNvtr][1] ][0]
@@ -814,3 +882,5 @@ bool FEM::PointBelongsToParallelepiped(double x, double y, double z, int numNvtr
 
 	return false;
 }
+
+//...........................................................................

@@ -2,15 +2,15 @@
 #include <fstream>
 #include <assert.h>
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::SetMaxiter(const int maxiter) { m_maxiter = maxiter; }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::SetEps(const double eps) { m_eps = eps; }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::Lx(const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const
 {
@@ -23,7 +23,7 @@ void MCG::Lx(const vector <double> &ELf, const vector <double> &Df, vector <doub
 	}
 }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::Ux(const vector <double> &EUf, vector <double> &x, const vector <double> &f) const
 {
@@ -36,7 +36,7 @@ void MCG::Ux(const vector <double> &EUf, vector <double> &x, const vector <doubl
 	}
 }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::LTx(const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const
 {
@@ -49,7 +49,7 @@ void MCG::LTx(const vector <double> &ELf, const vector <double> &Df, vector <dou
 	}
 }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::UTx(const vector <double> &EUf, vector <double> &x, const vector <double> &f) const
 {
@@ -62,7 +62,7 @@ void MCG::UTx(const vector <double> &EUf, vector <double> &x, const vector <doub
 	}
 }
 
-//..............................................................................................
+//...........................................................................
 
 double MCG::ScalarProduct(const vector <double> &x, const vector <double> &y) const
 {
@@ -72,11 +72,11 @@ double MCG::ScalarProduct(const vector <double> &x, const vector <double> &y) co
 	return temp;
 }
 
-//..............................................................................................
+//...........................................................................
 
 double MCG::NormVector(const vector <double> &x) const {	return sqrt(ScalarProduct(x, x)); }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::MultMatrixOnVector(const vector <double> &EU, const vector <double> &EL, const vector <double> &D, const vector <double> &vect, vector <double> &res) const
 {
@@ -92,7 +92,7 @@ void MCG::MultMatrixOnVector(const vector <double> &EU, const vector <double> &E
 	}
 }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::CreateLU()
 {
@@ -144,7 +144,7 @@ void MCG::CreateLU()
 	cout << "========================> LU was created sucsessfully! <====================== " << endl;
 }
 
-//..............................................................................................
+//...........................................................................
 
 void MCG::MCG_LU()
 {
@@ -209,3 +209,5 @@ void MCG::MCG_LU()
 	}
 	out.close();
 }
+
+//...........................................................................
