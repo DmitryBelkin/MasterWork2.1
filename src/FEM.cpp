@@ -6,9 +6,9 @@
 
 using namespace std;
 
-#define INPUT_MESH_NAME           "../resources/input_meshes/mesh_name.txt"
-#define INPUT_SLAU_PARAMETERS     "../resources/input_meshes/slau_parameters.txt"
-#define INPUT_ELASTITY_PARAMETERS "../resources/input_meshes/elastity_parameters.txt"
+const string inputMeshName           = "../resources/input_meshes/mesh_name.txt";
+const string inputSlaeParameters     = "../resources/input_meshes/slau_parameters.txt";
+const string inputElastityParameters = "../resources/input_meshes/elastity_parameters.txt";
 
 void FEM::Input(){
 	InputMesh              ();
@@ -19,54 +19,54 @@ void FEM::Input(){
 void FEM::InputMesh(){
 	char meshWay[100], meshName[100];
 
-	ifstream mesh_name(INPUT_MESH_NAME);
+	ifstream mesh_name(inputMeshName);
 	mesh_name >> meshName;
 	mesh_name.close();
 
-	strcpy_s(meshWay, "../resources/input_meshes/");
-	strcat_s( meshName, ".unv");
-	strcat_s( meshWay, meshName);
+	strcpy_s(meshWay , "../resources/input_meshes/");
+	strcat_s(meshName, ".unv");
+	strcat_s(meshWay , meshName);
 
-	ifstream working_area(meshWay);
-	string str;
+	ifstream WorkingArea(meshWay);
+
 	vector <int> numbers;
-
-	vector <int> nvtrBuf  ; nvtrBuf.resize(8);
+	vector <int> nvtrBuf; nvtrBuf.resize(8);
 	vector <double> xyzBuf; xyzBuf.resize(3);
 	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8;
 	int num;
 
+	string str;
 	// считывание первых строк, не несущих  информации о сетке
-	for(int i = 0; i < 19; ++i) { getline(working_area, str); }
+	for(int i = 0; i < 19; ++i) { getline(WorkingArea, str); }
 	// считывание первой строки с информацией о вершине №1
-	getline(working_area, str);
+	getline(WorkingArea, str);
 
 	// считывание координат вершин
 	do
 	{
 		numbers.clear();
-		working_area >> xyzBuf[0] >> xyzBuf[1] >> xyzBuf[2];
+		WorkingArea >> xyzBuf[0] >> xyzBuf[1] >> xyzBuf[2];
 		m_xyz.push_back(xyzBuf);
-		getline(working_area, str); // дочитал строку
-		getline(working_area, str); // считал строку с информацией о следующей вершине
+		getline(WorkingArea, str); // дочитал строку
+		getline(WorkingArea, str); // считал строку с информацией о следующей вершине
 		GetNumbers(numbers, str);
 		buf1 = numbers[0];
 	}
 	while(buf1 != 1);
 	
 	// считывание 2 строк, не несущих  информации о сетке
-	for(int i = 0; i < 2; ++i) { getline(working_area, str); }
+	for(int i = 0; i < 2; ++i) { getline(WorkingArea, str); }
 	
 	// считывание первой строки с информацией о ребре №1
-	getline(working_area, str);
+	getline(WorkingArea, str);
 	numbers.clear();
 	GetNumbers(numbers, str);
 	num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	while(num == 2) // прохожу ребра
 	{
-		getline(working_area, str); // 0     1       1
-		getline(working_area, str); // i     j
-		getline(working_area, str); // 177        11         2         1         7         (2)
+		getline(WorkingArea, str);
+		getline(WorkingArea, str);
+		getline(WorkingArea, str);
 		numbers.clear();
 		GetNumbers(numbers, str);
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
@@ -74,16 +74,16 @@ void FEM::InputMesh(){
 	
 	while(num == 4) // прохожу прямоугольники
 	{
-		getline(working_area, str); // i     j       k
-		getline(working_area, str); // 352        41         2         1         7         (3)
+		getline(WorkingArea, str);
+		getline(WorkingArea, str);
 		numbers.clear();
 		GetNumbers(numbers, str);
 		num = numbers[numbers.size()-1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 	
-	while(num == 8)
+	while(num == 8) // считываю конечные элементы (параллелипипеды)
 	{
-		working_area >> buf1 >> buf2 >> buf3 >> buf4 >> buf5 >> buf6 >> buf7 >> buf8;
+		WorkingArea >> buf1 >> buf2 >> buf3 >> buf4 >> buf5 >> buf6 >> buf7 >> buf8;
 		nvtrBuf[0] = buf2 - 1;
 		nvtrBuf[1] = buf6 - 1;
 		nvtrBuf[2] = buf3 - 1;
@@ -94,39 +94,36 @@ void FEM::InputMesh(){
 		nvtrBuf[7] = buf8 - 1;
 
 		m_nvtr.push_back(nvtrBuf);
-		getline(working_area, str); // прочитал строку до конца
-		getline(working_area, str); // 352        41         2         1         7         (4)
+		getline(WorkingArea, str);
+		getline(WorkingArea, str);
 		numbers.clear();
 		GetNumbers(numbers, str);
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 
-	for(int i = 0; i < 2; ++i) { getline(working_area, str); }
-	
-	vector < double > bufDouble;
-	bufDouble.resize(2);
-	
-	while (!working_area.eof())
+	for(int i = 0; i < 2; ++i) { getline(WorkingArea, str); }
+
+	while ( ! WorkingArea.eof() )
 	{
 		size_t founded;
 		int amOfEl;
-		working_area >> buf1;
+		WorkingArea >> buf1;
 		if(buf1 == -1) // если считал все группы
 		{
 			break;     // то выйти
 		}
-		working_area >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf2;
+		WorkingArea >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf2;
 		amOfEl = buf2;
-		getline(working_area, str);
-		getline(working_area, str);
-		
+		getline(WorkingArea, str);
+		getline(WorkingArea, str);
+
 		founded = str.find("nvk1");
 		if(founded!=std::string::npos)
 		{
 			numbers.clear();
 			for(int i = 0; i < amOfEl; ++i)
 			{
-				working_area >> buf1 >> buf2 >> buf1 >> buf1;
+				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
 				m_nvk1.push_back(buf2 - 1);
 			}
 		}
@@ -138,7 +135,7 @@ void FEM::InputMesh(){
 				numbers.clear();
 				for(int i = 0; i < amOfEl; ++i)
 				{
-					working_area >> buf1 >> buf2 >> buf1 >> buf1;
+					WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
 					m_nvk2_1.push_back(buf2 - 1);
 				}
 			}
@@ -150,16 +147,15 @@ void FEM::InputMesh(){
 					numbers.clear();
 					for(int i = 0; i < amOfEl; ++i)
 					{
-						working_area >> buf1 >> buf2 >> buf1 >> buf1;
+						WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
 						m_nvk2_2.push_back(buf2 - 1);
 					}
 				}
 			}
 		}
 	}
-	
-	working_area.close();
-	
+	WorkingArea.close();
+
 	cout << "======================> Mesh was readed successfully! <====================== " << endl;
 	cout << "Mesh info: " << endl;
 	cout << "\t Nodes: \t\t\t" << m_xyz.size() << endl;
@@ -169,20 +165,23 @@ void FEM::InputMesh(){
 	cout << "============================================================================= " << endl << endl;
 }
 
-void FEM::InputSlauParameters(){
-	ifstream slau_parameters(INPUT_SLAU_PARAMETERS);
+void FEM::InputSlauParameters()
+{
+	ifstream slau_parameters(inputSlaeParameters);
 	slau_parameters >> m_eps >> m_maxiter;
 	slau_parameters.close();
 }
 
-void FEM::InputElastityParameters(){
-	ifstream elastity_parameters(INPUT_ELASTITY_PARAMETERS);
+void FEM::InputElastityParameters()
+{
+	ifstream elastity_parameters(inputElastityParameters);
 	elastity_parameters >> m_nu >> m_E;
 	elastity_parameters.close();
 }
 
-void FEM::SolveProblem(){
-	Input(); // ввёл: 1) сетку. 2) параметры СЛАУ. 3) параметры задачи
+void FEM::SolveProblem()
+{
+	Input(); // Ввёл: 1) сетку. 2) параметры СЛАУ. 3) параметры задачи
 	SetDefault();
 	GenerateMatrixProfle();
 	CreateGlobalMatrixAndRightPart();
@@ -282,7 +281,7 @@ void FEM::AddDegree(vector <int> &mtr)
 						finded = true;
 					}
 				}
-				if (!finded)
+				if ( ! finded )
 				{
 					ig[ki].push_back(kj);
 				}
@@ -300,11 +299,9 @@ double FEM::X(int k, double x, int numNvtr) const
 	assert(xRight > xLeft);
 	switch(k)
 	{
-		case 1 : localBasisFunctionValue = (xRight - x) / length;
-				break;
-		case 2 : localBasisFunctionValue = (x - xLeft) / length;
-				break;
-		default : assert(false);
+		case 1  : localBasisFunctionValue = (xRight - x) / length; break;
+		case 2  : localBasisFunctionValue = (x - xLeft)  / length; break;
+		default : assert(false);                                   break;
 	}
 	return localBasisFunctionValue;
 }
@@ -318,11 +315,9 @@ double FEM::Y(int k, double y, int numNvtr) const
 	assert(yRight > yLeft);
 	switch(k)
 	{
-		case 1 : localBasisFunctionValue = (yRight - y) / length;
-				break;
-		case 2 : localBasisFunctionValue = (y - yLeft) / length;
-				break;
-		default : assert(false);
+		case 1  : localBasisFunctionValue = (yRight - y) / length; break;
+		case 2  : localBasisFunctionValue = (y - yLeft)  / length; break;
+		default : assert(false);                                   break;
 	}
 	return localBasisFunctionValue;
 }
@@ -336,11 +331,9 @@ double FEM::Z(int k, double z, int numNvtr) const
 	assert(zRight > zLeft);
 	switch(k)
 	{
-		case 1 : localBasisFunctionValue = (zRight - z) / length;
-				break;
-		case 2 : localBasisFunctionValue = (z - zLeft) / length;
-				break;
-		default : assert(false);
+		case 1  : localBasisFunctionValue = (zRight - z) / length; break;
+		case 2  : localBasisFunctionValue = (z - zLeft)  / length; break;
+		default : assert(false);                                   break;
 	}
 	return localBasisFunctionValue;
 }
@@ -355,11 +348,9 @@ double FEM::DerivativeX(int num, int numNvtr) const
 	assert(xRight > xLeft);
 	switch(k)
 	{
-		case 1 : localBasisFunctionDerivative = -1 / length;
-				break;
-		case 2 : localBasisFunctionDerivative =  1 / length;
-				break;
-		default : assert("Error in DerivativeX!");
+		case 1  : localBasisFunctionDerivative = -1 / length; break;
+		case 2  : localBasisFunctionDerivative =  1 / length; break;
+		default : assert("Error in DerivativeX!");            break;
 	}
 	return localBasisFunctionDerivative;
 }
@@ -374,11 +365,9 @@ double FEM::DerivativeY(int num, int numNvtr) const
 	assert(yRight > yLeft);
 	switch(k)
 	{
-		case 1 : localBasisFunctionDerivative = -1 / length;
-				break;
-		case 2 : localBasisFunctionDerivative =  1 / length;
-				break;
-		default : assert("Error in DerivativeY!");
+		case 1  : localBasisFunctionDerivative = -1 / length; break;
+		case 2  : localBasisFunctionDerivative =  1 / length; break;
+		default : assert("Error in DerivativeY!");            break;
 	}
 	return localBasisFunctionDerivative;
 }
@@ -393,11 +382,9 @@ double FEM::DerivativeZ(int num, int numNvtr) const
 	assert(zRight > zLeft);
 	switch(k)
 	{
-		case 1 : localBasisFunctionDerivative = -1 / length;
-				break;
-		case 2 : localBasisFunctionDerivative =  1 / length;
-				break;
-		default : assert("Error in DerivativeZ!");
+		case 1  : localBasisFunctionDerivative = -1 / length; break;
+		case 2  : localBasisFunctionDerivative =  1 / length; break;
+		default : assert("Error in DerivativeZ!");            break;
 	}
 	return localBasisFunctionDerivative;
 }
@@ -420,7 +407,7 @@ double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 
 void FEM::CreateGlobalMatrixAndRightPart()
 {
-	vector <vector <double> > KLocal;
+	vector < vector <double> > KLocal;
 	vector <double> b;
 	KLocal.resize(24);
 	b.resize(24);
@@ -558,7 +545,6 @@ void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vec
 			for (int j = 0; j < i; ++j)
 			{
 				kj = mtrx[j]; kj *= 3; kj += shift;
-
 				if (ki > kj) { assert(ki < ia.size()); k = ia[ki]; }
 				else
 				{
@@ -736,25 +722,29 @@ void FEM::PrintFigure()
 
 	// z 
 
-		Figure << xPoints[0] << '\t'
-	       << yPoints[0] << '\t'
-	       << zPoints[zPoints.size() - 1] << '\t'
-	       << value             << endl;
+		Figure
+			<< xPoints[0]                  << '\t'
+			<< yPoints[0]                  << '\t'
+			<< zPoints[zPoints.size() - 1] << '\t'
+			<< value                       << endl;
 
-	Figure << xPoints[xPoints.size() - 1] << '\t'
-	       << yPoints[0] << '\t'
-	       << zPoints[zPoints.size() - 1] << '\t'
-	       << value             << endl;
+	Figure 
+			<< xPoints[xPoints.size() - 1] << '\t'
+			<< yPoints[0]                  << '\t'
+			<< zPoints[zPoints.size() - 1] << '\t'
+			<< value                       << endl;
 
-	Figure << xPoints[0] << '\t'
-	       << yPoints[yPoints.size() - 1] << '\t'
-	       << zPoints[zPoints.size() - 1] << '\t'
-	       << value             << endl;
+	Figure 
+			<< xPoints[0]                  << '\t'
+			<< yPoints[yPoints.size() - 1] << '\t'
+			<< zPoints[zPoints.size() - 1] << '\t'
+			<< value                       << endl;
 
-	Figure << xPoints[xPoints.size() - 1] << '\t'
-	       << yPoints[yPoints.size() - 1] << '\t'
-	       << zPoints[zPoints.size() - 1] << '\t'
-	       << value             << endl;
+	Figure
+			<< xPoints[xPoints.size() - 1] << '\t'
+			<< yPoints[yPoints.size() - 1] << '\t'
+			<< zPoints[zPoints.size() - 1] << '\t'
+			<< value                       << endl;
 
 	Figure.close();
 }
@@ -792,7 +782,6 @@ void FEM::GenerateMeshForCheck()
 				bufCheckMesh[0] = m_xLeftCheckMesh + xStep * i;
 				bufCheckMesh[1] = m_yLeftCheckMesh + yStep * j;
 				bufCheckMesh[2] = m_zLeftCheckMesh + zStep * k;
-
 				m_checkMesh.push_back(bufCheckMesh);
 			}
 		}
@@ -814,7 +803,8 @@ bool FEM::PointBelongsToArea(double x, double y, double z) const
 	bool ifBelongs = false;
 	for (unsigned int i = 0; i < m_nvtr.size() && !ifBelongs; ++i)
 	{
-		if(PointBelongsToParallelepiped(x, y, z, i)) ifBelongs = true;
+		if(PointBelongsToParallelepiped(x, y, z, i))
+			ifBelongs = true;
 	}
 	return ifBelongs;
 }
@@ -824,7 +814,7 @@ bool FEM::PointBelongsToParallelepiped(double x, double y, double z, int numNvtr
 	if(    x >= m_xyz[ m_nvtr[numNvtr][0] ][0] && x <= m_xyz[ m_nvtr[numNvtr][1] ][0]
 		&& y >= m_xyz[ m_nvtr[numNvtr][0] ][1] && y <= m_xyz[ m_nvtr[numNvtr][2] ][1]
 		&& z >= m_xyz[ m_nvtr[numNvtr][0] ][2] && z <= m_xyz[ m_nvtr[numNvtr][4] ][2])
-	   return true;
+			return true;
 
 	return false;
 }
