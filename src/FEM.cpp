@@ -9,7 +9,7 @@ using namespace std;
 #define DOF             3
 #define DOF_ELEM        8
 #define LOCAL_DIMENSION DOF*DOF_ELEM
-const string inputPrefix             = "../resources/input_meshes/";
+const string inputPrefix             = "../resources/input/";
 const string inputMeshName           = inputPrefix + "mesh_name.txt";
 const string inputSlaeParameters     = inputPrefix + "slau_parameters.txt";
 const string inputElastityParameters = inputPrefix + "elastity_parameters.txt";

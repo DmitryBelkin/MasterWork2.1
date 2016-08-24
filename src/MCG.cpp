@@ -164,8 +164,6 @@ void MCG::MCG_LU()
 	for (i = 0; i < n; ++i) z[i] = r_[i] = r[i];
 	t = NormVector(f);
 	norm = NormVector(r) / t;
-	cout << "NormVector(r) = " << NormVector(r) << endl;
-	cout << "t             = " << t             << endl;
 	k = 1;
 	while (norm > m_eps && k < m_maxiter)
 	{
@@ -178,8 +176,8 @@ void MCG::MCG_LU()
 		const double alpha = ScalarProduct(r, r) / ScalarProduct(temp2, z);
 		for (i = 0; i < n; ++i)
 		{
-			xtch[i] = xtch[i] + alpha*z[i];
-			r[i]   -= alpha*temp2[i];
+			xtch[i] += alpha*z[i];
+			r[i]    -= alpha*temp2[i];
 		}
 		const double beta = ScalarProduct(r, r) / ScalarProduct(r_, r_);
 		for (i = 0; i < n; ++i)
@@ -196,18 +194,35 @@ void MCG::MCG_LU()
 	Ux(U, temp1, xtch);
 	for (i = 0; i < n; ++i) xtch[i] = temp1[i];
 
-	// @todo сделать нормальный вывод
-	cout << "k = " << k << endl;
-	cout << "norm = " << norm << endl << endl;
+	WriteSolverInfoInFile   (k, norm);
+	WriteSolverInfoInConsole(k, norm);
+}
 
-	ofstream out("output.txt");
-	out << "k = " << k << endl;
-	out << "norm = " << norm << endl << endl;
-	for (unsigned int i = 0; i < xtch.size(); ++i)
+//...........................................................................
+
+void MCG::WriteSolverInfoInFile(const int iterations, const double residual) const
+{
+	ofstream solverInfo(solverInfoFilename, ios::out);
+	solverInfo.setf(ios::scientific);
+	solverInfo.precision(9);
+	solverInfo << "Iterations = " << iterations << endl;
+	solverInfo << "Residual   = " << residual << endl << endl;
+
+	for (auto const &value : xtch)
 	{
-		out << xtch[i] << endl;
+		solverInfo << value << endl;
 	}
-	out.close();
+	solverInfo.close();
+}
+
+//...........................................................................
+
+void MCG::WriteSolverInfoInConsole(const int iterations, const double residual) const
+{
+	cout.setf(ios::scientific);
+	cout.precision(9);
+	cout << "Iterations = " << iterations << endl;
+	cout << "Residual   = " << residual << endl << endl;
 }
 
 //...........................................................................
