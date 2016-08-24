@@ -145,7 +145,7 @@ void MCG::CreateLU()
 		LUdi[i] = di[i] - sd;
 	}
 
-	cout << "========================> LU was created sucsessfully! <=====================" << endl;
+	cout << "5. LU - factorization passed" << endl;
 }
 
 //...........................................................................
@@ -192,7 +192,7 @@ void MCG::MCG_LU()
 		iteration++;
 		norm = NormVector(r) / t;
 
-		cout << "\r" << "Current residual = " << norm;
+		cout << "\r" << "\t Current residual = " << norm;
 	}
 	cout << endl;
 	Ux(U, temp1, weights);

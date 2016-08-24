@@ -9,18 +9,20 @@ using namespace std;
 #define DOF             3
 #define DOF_ELEM        8
 #define LOCAL_DIMENSION DOF*DOF_ELEM
-const string inputPrefix             = "../resources/input/";
-const string inputMeshName           = inputPrefix + "mesh_name.txt";
-const string inputSlaeParameters     = inputPrefix + "slau_parameters.txt";
-const string inputElastityParameters = inputPrefix + "elastity_parameters.txt";
+const string inputPrefix              = "../resources/input/";
+const string inputMeshName            = inputPrefix + "mesh_name.txt";
+const string inputSlaeParameters      = inputPrefix + "slau_parameters.txt";
+const string inputElastityParameters  = inputPrefix + "elastity_parameters.txt";
+const string inputCheckMeshParameters = inputPrefix + "check_mesh_parameters.txt";
 
 //...........................................................................
 
 void FEM::Input()
 {
-	InputMesh              ();
-	InputSlaeParameters    ();
-	InputElastityParameters();
+	InputMesh               ();
+	InputSlaeParameters     ();
+	InputElastityParameters ();
+	InputCheckMeshParameters();
 }
 
 //...........................................................................
@@ -162,31 +164,42 @@ void FEM::InputMesh(){
 	}
 	WorkingArea.close();
 
-	cout << "======================> Mesh was readed successfully! <====================== " << endl;
-	cout << "Mesh info: " << endl;
+	cout << "1. Mesh was readed" << endl;
+	cout << "\t Mesh info: " << endl;
 	cout << "\t Nodes: \t\t\t" << m_xyz.size() << endl;
 	cout << "\t Nodes in 1st boundary cond-s: \t" << m_nvk1.size() << endl;
-	cout << "\t Nodes in 2d boundary cond-s: \t\t" << m_nvk2.size() << endl;
+	cout << "\t Nodes in 2d boundary cond-s: \t" << m_nvk2.size() << endl;
 	cout << "\t Finite elements: \t\t" << m_nvtr.size() << endl;
-	cout << "============================================================================= " << endl << endl;
+	cout << endl;
 }
 
 //...........................................................................
 
 void FEM::InputSlaeParameters()
 {
-	ifstream slaeParameters(inputSlaeParameters);
-	slaeParameters >> m_eps >> m_maxiter;
-	slaeParameters.close();
+	ifstream in(inputSlaeParameters);
+	in >> m_eps >> m_maxiter;
+	in.close();
 }
 
 //...........................................................................
 
 void FEM::InputElastityParameters()
 {
-	ifstream elastityParameters(inputElastityParameters);
-	elastityParameters >> m_nu >> m_E;
-	elastityParameters.close();
+	ifstream in(inputElastityParameters);
+	in >> m_nu >> m_E;
+	in.close();
+}
+
+//...........................................................................
+
+void FEM::InputCheckMeshParameters()
+{
+	ifstream in(inputCheckMeshParameters);
+	in >> m_xLeftCheckMesh >> m_xRightCheckMesh >> m_amountOfStepsX;
+	in >> m_yLeftCheckMesh >> m_yRightCheckMesh >> m_amountOfStepsY;
+	in >> m_zLeftCheckMesh >> m_zRightCheckMesh >> m_amountOfStepsZ;
+	in.close();
 }
 
 //...........................................................................
@@ -232,7 +245,7 @@ void FEM::GenerateMatrixProfle()
 	}
 	ggl.resize(ia[n]);
 	ggu.resize(ia[n]);
-	cout << "=================<> Matrix profle was created successfully! <>===============" << endl;
+	cout << "2. Matrix profle was created" << endl;
 }
 
 //...........................................................................
@@ -423,11 +436,11 @@ void FEM::CreateGlobalMatrixAndRightPart()
 		AddLocalToGlobal(m_nvtr[i], KLocal, b);
 	}
 
-	cout << "<> Matrix and right part without boundary conditions created successfully! <>" << endl;
+	cout << "3. Matrix and right part without boundary conditions created" << endl;
 
 	BoundaryConditions();
 
-	cout << "====================<> Boundary conditions considered! <>==================== " << endl;
+	cout << "4. Boundary conditions considered" << endl;
 }
 
 //...........................................................................
@@ -623,7 +636,7 @@ void FEM::Boundary_1(int num, double Ug)
 {
 	int j = 0;
 	di[num] = 1.0;
-	f[num]  = Ug;
+	f [num] = Ug;
 	for (; j < ia[n]; ++j)
 	{
 		if (ja[j] == num)
@@ -796,18 +809,12 @@ void FEM::TransformMeshAfterDisplacement()
 
 void FEM::GenerateMeshForCheck()
 {
-	// @todo amountOfSteps задать из файла
-	m_amountOfStepsX = 20;
-	m_amountOfStepsY = 20;
-	m_amountOfStepsZ = 40;
-
 	// @todo сделать шаги членами класса?
 	const double xStep = (m_xRightCheckMesh - m_xLeftCheckMesh) / static_cast<double>(m_amountOfStepsX);
 	const double yStep = (m_yRightCheckMesh - m_yLeftCheckMesh) / static_cast<double>(m_amountOfStepsY);
 	const double zStep = (m_zRightCheckMesh - m_zLeftCheckMesh) / static_cast<double>(m_amountOfStepsZ);
 
 	vector <double> bufCheckMesh(DOF);
-
 	for (unsigned int k = 0; k < m_amountOfStepsZ; ++k)
 	{
 		for (unsigned int j = 0; j < m_amountOfStepsY; ++j)
@@ -821,18 +828,6 @@ void FEM::GenerateMeshForCheck()
 			}
 		}
 	}
-}
-
-//...........................................................................
-
-void FEM::SetBordersOfCheckMesh(double xLeftCheckMesh, double xRightCheckMesh, double yLeftCheckMesh, double yRightCheckMesh, double zLeftCheckMesh, double zRightCheckMesh)
-{
-	m_xLeftCheckMesh  = xLeftCheckMesh ;
-	m_xRightCheckMesh = xRightCheckMesh;
-	m_yLeftCheckMesh  = yLeftCheckMesh ;
-	m_yRightCheckMesh = yRightCheckMesh;
-	m_zLeftCheckMesh  = zLeftCheckMesh ;
-	m_zRightCheckMesh = zRightCheckMesh;
 }
 
 //...........................................................................

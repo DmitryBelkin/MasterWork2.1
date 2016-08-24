@@ -37,6 +37,7 @@ public:
 	void   InputMesh();
 	void   InputSlaeParameters();
 	void   InputElastityParameters();
+	void   InputCheckMeshParameters();
 
 	void   SolveProblem();
 	void   SetDefault();
@@ -67,5 +68,4 @@ public:
 	double ThreeLinearFunctionDerivative(int k, int numNvtr) const;
 	void   TransformMeshAfterDisplacement();
 	void   GenerateMeshForCheck();
-	void   SetBordersOfCheckMesh(double xLeftCheckMesh, double xRightCheckMesh, double yLeftCheckMesh, double yRightCheckMesh, double zLeftCheckMesh, double zRightCheckMesh);
 };
