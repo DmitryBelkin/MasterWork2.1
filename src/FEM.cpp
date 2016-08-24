@@ -217,32 +217,27 @@ void FEM::GenerateMatrixProfle()
 	{
 		AddNvtr(m_nvtr[i]);
 	}
-	ia.clear();
-	ia.resize(n + 1);
-	ia[0] = 0;
 	for (unsigned int i = 1; i < n + 1; ++i)
 	{
 		ia[i] = ia[i - 1] + ig[i - 1].size();
 	}
-	ja.clear();
 	ja.resize(ia[n]);
 	int i = 0;
-	for (unsigned int j = 0; j < n; ++j)
+	for (auto const &value : ig)
 	{
-		for (unsigned int k = 0; k < ig[j].size(); ++k, ++i)
+		for (unsigned int k = 0; k < value.size(); ++k, ++i)
 		{
-			ja[i] = *std::next(ig[j].begin(), k);
+			ja[i] = *std::next(value.begin(), k);
 		}
 	}
-	ggl.clear(); ggl.resize(ia[n]);
-	ggu.clear(); ggu.resize(ia[n]);
-
+	ggl.resize(ia[n]);
+	ggu.resize(ia[n]);
 	cout << "=================<> Matrix profle was created successfully! <>================= " << endl;
 }
 
 //...........................................................................
 
-void FEM::AddNvtr(vector <int> &mtr)
+void FEM::AddNvtr(const vector <int> &mtr)
 {
 	for (int i = 0; i < DOF_ELEM; ++i)
 	{
@@ -263,7 +258,7 @@ void FEM::AddNvtr(vector <int> &mtr)
 
 //...........................................................................
 
-void FEM::AddDegree(vector <int> &mtr)
+void FEM::AddDegree(const vector <int> &mtr)
 {
 	for (int i = 0; i < DOF; ++i)
 	{
@@ -337,7 +332,7 @@ double FEM::Z(int k, double z, int numNvtr) const
 
 double FEM::DerivativeX(int num, int numNvtr) const
 {
-	const int k = ((num - 1) % 2) + 1;
+	const int    k      = ((num - 1) % 2) + 1;
 	const double xLeft  = m_xyz[ m_nvtr[numNvtr][0] ][0];
 	const double xRight = m_xyz[ m_nvtr[numNvtr][1] ][0];
 	const double length = xRight - xLeft;
@@ -356,7 +351,7 @@ double FEM::DerivativeX(int num, int numNvtr) const
 
 double FEM::DerivativeY(int num, int numNvtr) const
 {
-	const int k = abs((((num - 1) / 2) % 2) + 1);
+	const int    k      = abs((((num - 1) / 2) % 2) + 1);
 	const double yLeft  = m_xyz[ m_nvtr[numNvtr][0] ][1];
 	const double yRight = m_xyz[ m_nvtr[numNvtr][2] ][1];
 	const double length = yRight - yLeft;
@@ -375,7 +370,7 @@ double FEM::DerivativeY(int num, int numNvtr) const
 
 double FEM::DerivativeZ(int num, int numNvtr) const
 {
-	const int k = abs((num - 1) / 4 + 1);
+	const int    k      = abs((num - 1) / 4 + 1);
 	const double zLeft  = m_xyz[ m_nvtr[numNvtr][0] ][2];
 	const double zRight = m_xyz[ m_nvtr[numNvtr][5] ][2];
 	const double length = zRight - zLeft;
@@ -415,7 +410,7 @@ double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 void FEM::CreateGlobalMatrixAndRightPart()
 {
 	vector < vector <double> > KLocal(LOCAL_DIMENSION);
-	vector <double> b(LOCAL_DIMENSION);
+	vector          <double>   b     (LOCAL_DIMENSION);
 
 	for (int i = 0; i < LOCAL_DIMENSION; ++i)
 	{
@@ -443,6 +438,8 @@ void FEM::SetDefault()
 	// на каждую вершину приходится по 3 (DOF = 3) смещения (по трём направлениям)
 	n = DOF * m_xyz.size();
 
+	ia.clear  ();
+	ja.clear  ();
 	ig.clear  ();
 	f.clear   ();
 	di.clear  ();
@@ -451,6 +448,8 @@ void FEM::SetDefault()
 	z.clear   ();
 	t.clear   ();
 	temp.clear();
+	ggl.clear ();
+	ggu.clear ();
 
 	ig.resize  (n);
 	f.resize   (n);
@@ -460,17 +459,17 @@ void FEM::SetDefault()
 	z.resize   (n);
 	t.resize   (n);
 	temp.resize(n);
+	ia.resize  (n + 1);
+
+	ia[0] = 0;
 }
 
 //...........................................................................
 
-void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &KLocal) const
+void FEM::GenerateLocalStiffnessMatrix(const int numNvtr, vector < vector <double> > &KLocal) const
 {
 	vector< vector <double> > LocalBlockK(DOF);
-	for (int i = 0; i < DOF; ++i)
-	{
-		LocalBlockK[i].resize(DOF);
-	}
+	for (int i = 0; i < DOF; ++i) { LocalBlockK[i].resize(DOF); }
 
 	for(int i = 0; i < DOF_ELEM; ++i)
 	{
@@ -492,7 +491,7 @@ void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &K
 
 //...........................................................................
 
-void FEM::GenerateLocalBlockK(int numi, int numj, int numNvtr, vector <vector <double> > &LocalBlockK) const
+void FEM::GenerateLocalBlockK(const int numi, const int numj, const int numNvtr, vector <vector <double> > &LocalBlockK) const
 {
 	const double dx1 = DerivativeX(numi, numNvtr);
 	const double dy1 = DerivativeY(numi, numNvtr);
@@ -502,26 +501,29 @@ void FEM::GenerateLocalBlockK(int numi, int numj, int numNvtr, vector <vector <d
 	const double dy2 = DerivativeY(numj, numNvtr);
 	const double dz2 = DerivativeZ(numj, numNvtr);
 
+	//@todo перепроверить
 	const double koeff = m_E * (1. - m_nu) / ( (1. + m_nu) * (1. - m_nu) );
 	const double a     = m_nu / (1. - m_nu);
 	const double b     = (1. - 2. * m_nu) / (2. * (1. - m_nu));
 
-	LocalBlockK[0][0] = dx1 * dx2 + b * (dz1 * dz2 + dy1 * dy2); LocalBlockK[0][1] = a * dx1 * dy2 + b * dx2 * dy1          ; LocalBlockK[0][2] = a * dx1 * dz2 + b * dx2 * dz1          ;
-	                                                             LocalBlockK[1][1] = dy1 * dy2 + b * (dz1 * dz2 + dx1 * dx2); LocalBlockK[1][2] = a * dy1 * dz2 + b * dy2 * dz1          ;
-	                                                                                                                          LocalBlockK[2][2] = dz1 * dz2 + b * (dx1 * dx2 + dy1 * dy2);
+	LocalBlockK[0][0] = dx1 * dx2 + b * (dz1 * dz2 + dy1 * dy2);
+	LocalBlockK[1][0] = a * dx1 * dy2 + b * dx2 * dy1          ; LocalBlockK[1][1] = dy1 * dy2 + b * (dz1 * dz2 + dx1 * dx2);
+	LocalBlockK[2][0] = a * dx1 * dz2 + b * dx2 * dz1          ; LocalBlockK[2][1] = a * dy1 * dz2 + b * dy2 * dz1          ; LocalBlockK[2][2] = dz1 * dz2 + b * (dx1 * dx2 + dy1 * dy2);
 
 	// @todo проверить интеграл. В данном случае из-за линыйности бф - считается просто объём элемента
-	for(int i = 0; i < DOF; ++i)
-		for(int j = 0; j < i; ++j)
+	for (int i = 0; i < DOF; ++i)
+	{
+		for (int j = 0; j < i; ++j)
 		{
-			LocalBlockK[j][i] *= VolumeOfParallelepiped(numNvtr) * koeff;
-			LocalBlockK[i][j]  = LocalBlockK[j][i];
+			LocalBlockK[i][j] *= VolumeOfParallelepiped(numNvtr) * koeff;
+			LocalBlockK[j][i] = LocalBlockK[i][j];
 		}
+	}
 }
 
 //...........................................................................
 
-double FEM::VolumeOfParallelepiped(int numNvtr) const
+double FEM::VolumeOfParallelepiped(const int numNvtr) const
 {
 	const double xLength = m_xyz[ m_nvtr[numNvtr][1] ][0] - m_xyz[ m_nvtr[numNvtr][0] ][0];
 	const double yLength = m_xyz[ m_nvtr[numNvtr][2] ][1] - m_xyz[ m_nvtr[numNvtr][0] ][1];
@@ -532,7 +534,7 @@ double FEM::VolumeOfParallelepiped(int numNvtr) const
 
 //...........................................................................
 
-void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <double> > &KLocal , vector <vector <double> > &LocalBlockK) const
+void FEM::AddBlockToLocalStiffnessMatrix(const int numi, const int numj, vector <vector <double> > &KLocal, const vector <vector <double> > &LocalBlockK) const
 {
 	for (int i = 0; i < DOF; ++i)
 	{
@@ -546,25 +548,26 @@ void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <dou
 
 //...........................................................................
 
-void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vector <double> &b)
+void FEM::AddLocalToGlobal(const vector <int> &mtrx, const vector < vector <double> > &K, const vector <double> &b)
 {
-	int k, ki, kj;
+	int k;
 	for (int i = 0; i < DOF_ELEM; ++i)
 	{
 		for (int shift = 0; shift < DOF; ++shift)
 		{
-			ki = mtrx[i]; ki *= DOF; ki += shift;
+			const int ki = mtrx[i] * DOF + shift;
 
 			assert(ki < di.size()); di[ki] += K[i * DOF + shift][i * DOF + shift];
 			assert(ki < f.size()) ;  f[ki] += b[i * DOF + shift]                 ;
 			for (int j = 0; j < i; ++j)
 			{
-				kj = mtrx[j]; kj *= DOF; kj += shift;
+				int kj = mtrx[j] * DOF + shift;
 				if (ki > kj) { assert(ki < ia.size()); k = ia[ki]; }
 				else
 				{
-					assert(kj < ia.size()); k  = ia[kj];
-					                        kj = ki    ;
+					assert(kj < ia.size()); 
+					k  = ia[kj];
+					kj = ki    ;
 				}
 
 				while (ja[k] != kj)
@@ -572,8 +575,9 @@ void FEM::AddLocalToGlobal(vector <int> &mtrx, vector <vector <double> > &K, vec
 					++k;
 					assert(k < ja.size());
 				}
-				assert(k < ggl.size()); ggl[k] += K[i * DOF + shift][j * DOF + shift];
-				                        ggu[k] += K[i * DOF + shift][j * DOF + shift];
+				assert(k < ggl.size());
+				ggl[k] += K[i * DOF + shift][j * DOF + shift];
+				ggu[k] += K[i * DOF + shift][j * DOF + shift];
 			}
 		}
 	}
