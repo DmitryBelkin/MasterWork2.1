@@ -1,6 +1,7 @@
 #include "MCG.h"
 #include <fstream>
-#include <assert.h>
+#include <cassert>
+#include <numeric>
 
 //...........................................................................
 
@@ -14,6 +15,8 @@ void MCG::SetEps(const double eps) { m_eps = eps; }
 
 void MCG::Lx(const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const
 {
+	vector<double> z(x.size());
+	x.swap(z);
 	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
 	for (unsigned int i = 0; i < n; ++i)
 	{
@@ -27,7 +30,8 @@ void MCG::Lx(const vector <double> &ELf, const vector <double> &Df, vector <doub
 
 void MCG::Ux(const vector <double> &EUf, vector <double> &x, const vector <double> &f) const
 {
-	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
+	vector<double> z(x.size());
+	x.swap(z);
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] += f[i];
@@ -40,7 +44,8 @@ void MCG::Ux(const vector <double> &EUf, vector <double> &x, const vector <doubl
 
 void MCG::LTx(const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const
 {
-	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
+	vector<double> z(x.size());
+	x.swap(z);
 	for (int i = n - 1; i >= 0; i--)
 	{
 		x[i] = (x[i] + f[i]) / Df[i];
@@ -53,7 +58,8 @@ void MCG::LTx(const vector <double> &ELf, const vector <double> &Df, vector <dou
 
 void MCG::UTx(const vector <double> &EUf, vector <double> &x, const vector <double> &f) const
 {
-	for (unsigned int i = 0; i < n; ++i) x[i] = 0;
+	vector<double> z(x.size());
+	x.swap(z);
 	for (unsigned int i = 0; i < n; ++i)
 	{
 		x[i] = f[i];
@@ -64,23 +70,21 @@ void MCG::UTx(const vector <double> &EUf, vector <double> &x, const vector <doub
 
 //...........................................................................
 
-double MCG::ScalarProduct(const vector <double> &x, const vector <double> &y) const
+double MCG::ScalarProduct(const vector <double> &v1, const vector <double> &v2) const
 {
-	double temp = 0;
-	for (unsigned int i = 0; i < n; ++i)
-		temp += x[i] * y[i];
-	return temp;
+	return inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
 }
 
 //...........................................................................
 
-double MCG::NormVector(const vector <double> &x) const {	return sqrt(ScalarProduct(x, x)); }
+double MCG::NormVector(const vector <double> &v) const { return sqrt(ScalarProduct(v, v)); }
 
 //...........................................................................
 
 void MCG::MultMatrixOnVector(const vector <double> &EU, const vector <double> &EL, const vector <double> &D, const vector <double> &vect, vector <double> &res) const
 {
-	for (unsigned int i = 0; i < n; ++i) res[i] = 0;
+	vector<double> z(res.size());
+	res.swap(z);
 	for (unsigned int i = 0; i < n; ++i)
 	{
 		res[i] = D[i] * vect[i];
@@ -141,14 +145,14 @@ void MCG::CreateLU()
 		LUdi[i] = di[i] - sd;
 	}
 
-	cout << "========================> LU was created sucsessfully! <====================== " << endl;
+	cout << "========================> LU was created sucsessfully! <=====================" << endl;
 }
 
 //...........................................................................
 
 void MCG::MCG_LU()
 {
-	unsigned int i, k;
+	unsigned int i, iteration;
 	vector <double> r, z, r_, temp1, temp2;
 	double t, norm;
 	r    .resize(n);
@@ -161,11 +165,11 @@ void MCG::MCG_LU()
 	LTx(L, LUdi, temp2, temp1);
 	MultMatrixOnVector(ggl, ggu, di, temp2, temp1);
 	UTx(U, r, temp1);
-	for (i = 0; i < n; ++i) z[i] = r_[i] = r[i];
+	z = r_ = r;
 	t = NormVector(f);
 	norm = NormVector(r) / t;
-	k = 1;
-	while (norm > m_eps && k < m_maxiter)
+	iteration = 1;
+	while (norm > m_eps && iteration < m_maxiter)
 	{
 		Ux(U, temp1, z);
 		MultMatrixOnVector(ggu, ggl, di, temp1, temp2);
@@ -176,26 +180,26 @@ void MCG::MCG_LU()
 		const double alpha = ScalarProduct(r, r) / ScalarProduct(temp2, z);
 		for (i = 0; i < n; ++i)
 		{
-			xtch[i] += alpha*z[i];
-			r[i]    -= alpha*temp2[i];
+			weights[i] += alpha*z[i];
+			r[i]       -= alpha*temp2[i];
 		}
 		const double beta = ScalarProduct(r, r) / ScalarProduct(r_, r_);
 		for (i = 0; i < n; ++i)
 		{
-			z[i]  = r[i] + beta*z[i];
-			r_[i] = r[i];
+			z [i]  = r[i] + beta*z[i];
 		}
-		k++;
+		r_ = r;
+		iteration++;
 		norm = NormVector(r) / t;
 
-		cout << "\r" << norm;
+		cout << "\r" << "Current residual = " << norm;
 	}
 	cout << endl;
-	Ux(U, temp1, xtch);
-	for (i = 0; i < n; ++i) xtch[i] = temp1[i];
+	Ux(U, temp1, weights);
+	weights = temp1;
 
-	WriteSolverInfoInFile   (k, norm);
-	WriteSolverInfoInConsole(k, norm);
+	WriteSolverInfoInFile   (iteration, norm);
+	WriteSolverInfoInConsole(iteration, norm);
 }
 
 //...........................................................................
@@ -203,12 +207,11 @@ void MCG::MCG_LU()
 void MCG::WriteSolverInfoInFile(const int iterations, const double residual) const
 {
 	ofstream solverInfo(solverInfoFilename, ios::out);
-	solverInfo.setf(ios::scientific);
-	solverInfo.precision(9);
+	solverInfo.setf(ios::scientific); solverInfo.precision(9);
 	solverInfo << "Iterations = " << iterations << endl;
 	solverInfo << "Residual   = " << residual << endl << endl;
 
-	for (auto const &value : xtch)
+	for (auto const &value : weights)
 	{
 		solverInfo << value << endl;
 	}
@@ -219,10 +222,10 @@ void MCG::WriteSolverInfoInFile(const int iterations, const double residual) con
 
 void MCG::WriteSolverInfoInConsole(const int iterations, const double residual) const
 {
-	cout.setf(ios::scientific);
-	cout.precision(9);
+	cout.setf(ios::scientific); cout.precision(9);
 	cout << "Iterations = " << iterations << endl;
 	cout << "Residual   = " << residual << endl << endl;
+	cout.unsetf(ios::scientific);
 }
 
 //...........................................................................

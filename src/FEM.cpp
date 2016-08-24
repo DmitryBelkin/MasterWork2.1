@@ -232,7 +232,7 @@ void FEM::GenerateMatrixProfle()
 	}
 	ggl.resize(ia[n]);
 	ggu.resize(ia[n]);
-	cout << "=================<> Matrix profle was created successfully! <>================= " << endl;
+	cout << "=================<> Matrix profle was created successfully! <>===============" << endl;
 }
 
 //...........................................................................
@@ -443,7 +443,7 @@ void FEM::SetDefault()
 	ig.clear  ();
 	f.clear   ();
 	di.clear  ();
-	xtch.clear();
+	weights.clear();
 	r.clear   ();
 	z.clear   ();
 	t.clear   ();
@@ -454,7 +454,7 @@ void FEM::SetDefault()
 	ig.resize  (n);
 	f.resize   (n);
 	di.resize  (n);
-	xtch.resize(n);
+	weights.resize(n);
 	r.resize   (n);
 	z.resize   (n);
 	t.resize   (n);
@@ -786,9 +786,9 @@ void FEM::TransformMeshAfterDisplacement()
 {
 	for (unsigned int i = 0; i < m_xyz.size(); ++i)
 	{
-		m_xyz[i][0] = m_xyz[i][0] + xtch[i * DOF    ];
-		m_xyz[i][1] = m_xyz[i][1] + xtch[i * DOF + 1];
-		m_xyz[i][2] = m_xyz[i][2] + xtch[i * DOF + 2];
+		m_xyz[i][0] = m_xyz[i][0] + weights[i * DOF    ];
+		m_xyz[i][1] = m_xyz[i][1] + weights[i * DOF + 1];
+		m_xyz[i][2] = m_xyz[i][2] + weights[i * DOF + 2];
 	}
 }
 

@@ -17,7 +17,7 @@ public:
 	unsigned int         n, m_maxiter;
 	double               m_eps;
 	vector < int >       ia, ja;
-	vector < double >    xtch, r, z, temp, L, U, LUdi, t, f, ggl, ggu, di;
+	vector < double >    weights, r, z, temp, L, U, LUdi, t, f, ggl, ggu, di;
 	vector < set <int> > ig;
 
 	MCG()
@@ -35,8 +35,8 @@ public:
 	void   SetEps(const double eps);
 	void   SetMaxiter(const int maxiter);
 
-	double NormVector(const vector <double> &x) const;
-	double ScalarProduct(const vector <double> &x, const vector <double> &y) const;
+	double NormVector(const vector <double> &v) const;
+	double ScalarProduct(const vector <double> &v1, const vector <double> &v2) const;
 
 	void   Lx (const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const;
 	void   Ux (const vector <double> &EUf,                            vector <double> &x, const vector <double> &f) const;
