@@ -3,17 +3,18 @@
 #include <algorithm>
 #include <cmath>
 #include <vector>
+#include <set>
 
 using namespace std;
 
 class MCG
 {
 public:
-	unsigned int           n, m_maxiter;
-	double                 m_eps;
-	vector < int >         ia, ja;
-	vector < double >      xtch, r, z, temp, L, U, LUdi, t, f, ggl, ggu, di;
-	vector <vector <int> > ig;
+	unsigned int         n, m_maxiter;
+	double               m_eps;
+	vector < int >       ia, ja;
+	vector < double >    xtch, r, z, temp, L, U, LUdi, t, f, ggl, ggu, di;
+	vector < set <int> > ig;
 
 	MCG()
 		: n(0)

@@ -217,10 +217,6 @@ void FEM::GenerateMatrixProfle()
 	{
 		AddNvtr(m_nvtr[i]);
 	}
-	for (unsigned int i = 0; i < n; ++i)
-	{
-		sort(ig[i].begin(), ig[i].begin() + ig[i].size());
-	}
 	ia.clear();
 	ia.resize(n + 1);
 	ia[0] = 0;
@@ -235,7 +231,7 @@ void FEM::GenerateMatrixProfle()
 	{
 		for (unsigned int k = 0; k < ig[j].size(); ++k, ++i)
 		{
-			ja[i] = ig[j][k];
+			ja[i] = *std::next(ig[j].begin(), k);
 		}
 	}
 	ggl.clear(); ggl.resize(ia[n]);
@@ -248,29 +244,17 @@ void FEM::GenerateMatrixProfle()
 
 void FEM::AddNvtr(vector <int> &mtr)
 {
-	int ki, kj;
 	for (int i = 0; i < DOF_ELEM; ++i)
 	{
 		for (int j = 0; j < DOF_ELEM; ++j)
 		{
 			for (int shift = 0; shift < DOF; ++shift)
 			{
-				ki = mtr[i]; ki = ki * DOF + shift;
-				kj = mtr[j]; kj = kj * DOF + shift;
+				const int ki = mtr[i] * DOF + shift;
+				const int kj = mtr[j] * DOF + shift;
 				if (ki > kj)
 				{
-					bool finded = false;
-					for (unsigned int l = 0; l < ig[ki].size() && !finded; ++l)
-					{
-						if (ig[ki][l] == kj)
-						{
-							finded = true;
-						}
-					}
-					if (!finded)
-					{
-						ig[ki].push_back(kj);
-					}
+					ig[ki].insert(kj);
 				}
 			}
 		}
@@ -285,22 +269,11 @@ void FEM::AddDegree(vector <int> &mtr)
 	{
 		for (int j = 0; j < DOF; ++j)
 		{
-			int ki = mtr[i];
-			int kj = mtr[j];
+			const int ki = mtr[i];
+			const int kj = mtr[j];
 			if (ki > kj)
 			{
-				bool finded = false;
-				for (unsigned int l = 0; l < ig[ki].size() && !finded; ++l)
-				{
-					if (ig[ki][l] == kj)
-					{
-						finded = true;
-					}
-				}
-				if ( ! finded )
-				{
-					ig[ki].push_back(kj);
-				}
+				ig[ki].insert(kj);
 			}
 		}
 	}
