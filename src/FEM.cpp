@@ -16,7 +16,8 @@ const string inputElastityParameters = inputPrefix + "elastity_parameters.txt";
 
 //...........................................................................
 
-void FEM::Input(){
+void FEM::Input()
+{
 	InputMesh              ();
 	InputSlaeParameters    ();
 	InputElastityParameters();
@@ -280,13 +281,12 @@ void FEM::AddNvtr(vector <int> &mtr)
 
 void FEM::AddDegree(vector <int> &mtr)
 {
-	int ki, kj;
 	for (int i = 0; i < DOF; ++i)
 	{
 		for (int j = 0; j < DOF; ++j)
 		{
-			ki = mtr[i];
-			kj = mtr[j];
+			int ki = mtr[i];
+			int kj = mtr[j];
 			if (ki > kj)
 			{
 				bool finded = false;
@@ -441,12 +441,12 @@ double FEM::ThreeLinearFunctionDerivative(int k, int numNvtr) const
 
 void FEM::CreateGlobalMatrixAndRightPart()
 {
-	vector < vector <double> > KLocal(24);
-	vector <double> b(24);
+	vector < vector <double> > KLocal(LOCAL_DIMENSION);
+	vector <double> b(LOCAL_DIMENSION);
 
-	for (int i = 0; i < 24; ++i)
+	for (int i = 0; i < LOCAL_DIMENSION; ++i)
 	{
-		KLocal[i].resize(24);
+		KLocal[i].resize(LOCAL_DIMENSION);
 	}
 
 	for (unsigned int i = 0; i < m_nvtr.size(); ++i)
@@ -493,7 +493,7 @@ void FEM::SetDefault()
 
 void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &KLocal) const
 {
-	vector <vector <double> > LocalBlockK(DOF);
+	vector< vector <double> > LocalBlockK(DOF);
 	for (int i = 0; i < DOF; ++i)
 	{
 		LocalBlockK[i].resize(DOF);
@@ -508,7 +508,7 @@ void FEM::GenerateLocalStiffnessMatrix(int numNvtr, vector <vector <double> > &K
 		}
 	}
 
-	for(int i = 0; i < 24; ++i)
+	for(int i = 0; i < LOCAL_DIMENSION; ++i)
 	{
 		for(int j = 0; j < i; ++j)
 		{
@@ -565,7 +565,7 @@ void FEM::AddBlockToLocalStiffnessMatrix(int numi, int numj, vector <vector <dou
 	{
 		for (int j = i; j < DOF; ++j)
 		{
-			assert( ((numi * DOF + i) < 24) && ((numj * DOF + j) < 24) );
+			assert( ((numi * DOF + i) < LOCAL_DIMENSION) && ((numj * DOF + j) < LOCAL_DIMENSION) );
 			KLocal[numi * DOF + i][numj * DOF + j] = LocalBlockK[i][j];
 		}
 	}
