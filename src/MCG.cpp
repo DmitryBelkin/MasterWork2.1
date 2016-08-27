@@ -1,6 +1,4 @@
 #include "MCG.h"
-#include <fstream>
-#include <cassert>
 #include <numeric>
 
 //...........................................................................

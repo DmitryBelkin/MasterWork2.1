@@ -1,8 +1,5 @@
 #include "FEM.h"
 #include "HelpFunctions.h"
-#include <fstream>
-#include <cassert>
-#include <cmath>
 
 using namespace std;
 
@@ -34,21 +31,19 @@ void FEM::Input()
 //...........................................................................
 
 void FEM::InputMesh(){
-	char meshWay[100], meshName[100];
-
+	char meshName[100];
 	ifstream mesh_name(inputMeshName);
 	mesh_name >> meshName;
 	mesh_name.close();
 
+	char meshWay[100];
 	strcpy_s(meshWay , inputPrefix.c_str());
 	strcat_s(meshName, ".unv"             );
 	strcat_s(meshWay , meshName           );
+	ifstream workingArea(meshWay);
+	ReadStuff(20, workingArea);
 
-	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8;
-	int num;
-
-	ifstream WorkingArea(meshWay);
-	ReadStuff(20, WorkingArea);
+	int iValue1;
 
 	string str;
 	vector <int> numbers;
@@ -56,102 +51,107 @@ void FEM::InputMesh(){
 	// считывание координат вершин
 	do
 	{
-		WorkingArea >> xyzBuf[0] >> xyzBuf[1] >> xyzBuf[2];
+		workingArea >> xyzBuf[0] >> xyzBuf[1] >> xyzBuf[2];
 		m_xyz.push_back(xyzBuf);
-		ReadStuff(1, WorkingArea);
-		getline(WorkingArea, str); // считал строку с информацией о следующей вершине
+		ReadStuff(1, workingArea);
+		getline(workingArea, str); // считал строку с информацией о следующей вершине
 		GetNumbers(numbers, str);
-		buf1 = numbers[0];
+		iValue1 = numbers[0];
 	}
-	while(buf1 != -1);
+	while (iValue1 != -1);
 	
-	ReadStuff(2, WorkingArea);
+	ReadStuff(2, workingArea);
 	
 	// считывание первой строки с информацией о ребре №1
-	getline(WorkingArea, str);
+	getline(workingArea, str);
 	GetNumbers(numbers, str);
-	num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
-	while(num == 2) // прохожу ребра
+	int typeOfElement = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
+	while (typeOfElement == 2) // прохожу ребра
 	{
-		ReadStuff(2, WorkingArea);
-		getline(WorkingArea, str);
+		ReadStuff(2, workingArea);
+		getline(workingArea, str);
 		GetNumbers(numbers, str);
-		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
+		typeOfElement = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 	
-	while(num == 4) // прохожу прямоугольники
+	while (typeOfElement == 4) // прохожу прямоугольники
 	{
-		ReadStuff(1, WorkingArea);
-		getline(WorkingArea, str);
+		ReadStuff(1, workingArea);
+		getline(workingArea, str);
 		GetNumbers(numbers, str);
-		num = numbers[numbers.size()-1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
+		typeOfElement = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 	
 	vector <int> nvtrBuf(DOF_ELEM);
-	while(num == 8) // считываю конечные элементы (параллелипипеды)
+	while (typeOfElement == 8) // считываю конечные элементы (параллелипипеды)
 	{
-		WorkingArea >> buf1 >> buf2 >> buf3 >> buf4 >> buf5 >> buf6 >> buf7 >> buf8;
-		nvtrBuf[0] = buf2 - 1;
-		nvtrBuf[1] = buf6 - 1;
-		nvtrBuf[2] = buf3 - 1;
-		nvtrBuf[3] = buf7 - 1;
-		nvtrBuf[4] = buf1 - 1;
-		nvtrBuf[5] = buf5 - 1;
-		nvtrBuf[6] = buf4 - 1;
-		nvtrBuf[7] = buf8 - 1;
+		workingArea
+			>> nvtrBuf[4]
+			>> nvtrBuf[0]
+			>> nvtrBuf[2]
+			>> nvtrBuf[6]
+			>> nvtrBuf[5]
+			>> nvtrBuf[1]
+			>> nvtrBuf[3]
+			>> nvtrBuf[7];
+
+		for (auto &value : nvtrBuf)
+			value -= 1;
 
 		m_nvtr.push_back(nvtrBuf);
-		ReadStuff(1, WorkingArea);
-		getline(WorkingArea, str);
+		ReadStuff(1, workingArea);
+		getline(workingArea, str);
 		GetNumbers(numbers, str);
-		num = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
+		typeOfElement = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
 
-	ReadStuff(2, WorkingArea);
+	ReadStuff(2, workingArea);
 
-	while ( ! WorkingArea.eof() )
+	while ( ! workingArea.eof() )
 	{
-		WorkingArea >> num;
-		if (num == -1) // если считал все группы
+		workingArea >> typeOfElement;
+		// @todo change exit of cycle (change parsing of end of file)
+		if (typeOfElement == -1) // если считал все группы
 			break;     // то выйти
-		int amOfEl;
-		WorkingArea >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> amOfEl;
-		ReadStuff(1, WorkingArea);
-		getline(WorkingArea, str);
+		int amountOfElements;
+		workingArea >> iValue1 >> iValue1 >> iValue1 >> iValue1 >> iValue1 >> iValue1 >> amountOfElements;
+		ReadStuff(1, workingArea);
+		getline(workingArea, str);
 
+		int iValue2;
 		if (str == "nvk1")
 		{
-			for(int i = 0; i < amOfEl; ++i)
+			for (int i = 0; i < amountOfElements; ++i)
 			{
-				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
-				m_nvk1.push_back(buf2 - 1);
+				workingArea >> iValue1 >> iValue2 >> iValue1 >> iValue1;
+				m_nvk1.push_back(iValue2 - 1);
 			}
 		}
 		else if (str == "nvk2_1")
 		{
-			for(int i = 0; i < amOfEl; ++i)
+			for (int i = 0; i < amountOfElements; ++i)
 			{
-				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
-				m_nvk2_1.push_back(buf2 - 1);
+				workingArea >> iValue1 >> iValue2 >> iValue1 >> iValue1;
+				m_nvk2_1.push_back(iValue2 - 1);
 			}
 		}
 		else if (str == "nvk2_2")
 		{
-			for(int i = 0; i < amOfEl; ++i)
+			for (int i = 0; i < amountOfElements; ++i)
 			{
-				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
-				m_nvk2_2.push_back(buf2 - 1);
+				workingArea >> iValue1 >> iValue2 >> iValue1 >> iValue1;
+				m_nvk2_2.push_back(iValue2 - 1);
 			}
 		}
 	}
-	WorkingArea.close();
+	workingArea.close();
 
-	cout << "1. Mesh was readed" << endl;
-	cout << "\t Mesh info: " << endl;
-	cout << "\t Nodes: " << m_xyz.size() << endl;
-	cout << "\t Nodes in 1st boundary conditions: " << m_nvk1.size() << endl;
-	cout << "\t Nodes in 2d boundary conditions: " << m_nvk2.size() << endl;
-	cout << "\t Finite elements: " << m_nvtr.size() << endl;
+	std::cout << "1. Mesh was readed" << endl;
+	std::cout << "\t Mesh info: " << endl;
+	std::cout << "\t Nodes: " << m_xyz.size() << endl;
+	std::cout << "\t Nodes in 1st boundary conditions: " << m_nvk1.size() << endl;
+	std::cout << "\t Nodes in 2d boundary conditions: " << m_nvk2.size() << endl;
+	std::cout << "\t Finite elements: " << m_nvtr.size() << endl;
 }
 
 //...........................................................................
