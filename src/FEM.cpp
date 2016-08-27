@@ -8,12 +8,18 @@ using namespace std;
 
 #define DOF             3
 #define DOF_ELEM        8
-#define LOCAL_DIMENSION DOF*DOF_ELEM
+#define LOCAL_DIMENSION ((DOF)*(DOF_ELEM))
 const string inputPrefix              = "../resources/input/";
 const string inputMeshName            = inputPrefix + "mesh_name.txt";
-const string inputSlaeParameters      = inputPrefix + "slau_parameters.txt";
+const string inputSlaeParameters      = inputPrefix + "slae_parameters.txt";
 const string inputElastityParameters  = inputPrefix + "elastity_parameters.txt";
 const string inputCheckMeshParameters = inputPrefix + "check_mesh_parameters.txt";
+
+static void ReadStuff(const int amountOfLines, ifstream &file)
+{
+	string str;
+	for (int i = 0; i < amountOfLines; ++i) { getline(file, str); }
+}
 
 //...........................................................................
 
@@ -38,59 +44,50 @@ void FEM::InputMesh(){
 	strcat_s(meshName, ".unv"             );
 	strcat_s(meshWay , meshName           );
 
-	vector <int> numbers;
-	vector <int> nvtrBuf(DOF_ELEM);
-	vector <double> xyzBuf(DOF);
 	int buf1, buf2, buf3, buf4, buf5, buf6, buf7, buf8;
 	int num;
-	string str;
 
 	ifstream WorkingArea(meshWay);
-	// считывание первых строк, не несущих  информации о сетке
-	for(int i = 0; i < 19; ++i) { getline(WorkingArea, str); }
-	// считывание первой строки с информацией о вершине є1
-	getline(WorkingArea, str);
+	ReadStuff(20, WorkingArea);
 
+	string str;
+	vector <int> numbers;
+	vector <double> xyzBuf(DOF);
 	// считывание координат вершин
 	do
 	{
-		numbers.clear();
 		WorkingArea >> xyzBuf[0] >> xyzBuf[1] >> xyzBuf[2];
 		m_xyz.push_back(xyzBuf);
-		getline(WorkingArea, str); // дочитал строку
+		ReadStuff(1, WorkingArea);
 		getline(WorkingArea, str); // считал строку с информацией о следующей вершине
 		GetNumbers(numbers, str);
 		buf1 = numbers[0];
 	}
-	while(buf1 != 1);
+	while(buf1 != -1);
 	
-	// считывание 2 строк, не несущих  информации о сетке
-	for(int i = 0; i < 2; ++i) { getline(WorkingArea, str); }
+	ReadStuff(2, WorkingArea);
 	
 	// считывание первой строки с информацией о ребре є1
 	getline(WorkingArea, str);
-	numbers.clear();
 	GetNumbers(numbers, str);
 	num = numbers[numbers.size() - 1]; // количество считываемых элементов (пр€ма€, треугольник, тетраэдр)
 	while(num == 2) // прохожу ребра
 	{
+		ReadStuff(2, WorkingArea);
 		getline(WorkingArea, str);
-		getline(WorkingArea, str);
-		getline(WorkingArea, str);
-		numbers.clear();
 		GetNumbers(numbers, str);
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (пр€ма€, треугольник, тетраэдр)
 	}
 	
 	while(num == 4) // прохожу пр€моугольники
 	{
+		ReadStuff(1, WorkingArea);
 		getline(WorkingArea, str);
-		getline(WorkingArea, str);
-		numbers.clear();
 		GetNumbers(numbers, str);
 		num = numbers[numbers.size()-1]; // количество считываемых элементов (пр€ма€, треугольник, тетраэдр)
 	}
 	
+	vector <int> nvtrBuf(DOF_ELEM);
 	while(num == 8) // считываю конечные элементы (параллелипипеды)
 	{
 		WorkingArea >> buf1 >> buf2 >> buf3 >> buf4 >> buf5 >> buf6 >> buf7 >> buf8;
@@ -104,31 +101,29 @@ void FEM::InputMesh(){
 		nvtrBuf[7] = buf8 - 1;
 
 		m_nvtr.push_back(nvtrBuf);
+		ReadStuff(1, WorkingArea);
 		getline(WorkingArea, str);
-		getline(WorkingArea, str);
-		numbers.clear();
 		GetNumbers(numbers, str);
 		num = numbers[numbers.size() - 1]; // количество считываемых элементов (пр€ма€, треугольник, тетраэдр)
 	}
 
-	for(int i = 0; i < 2; ++i) { getline(WorkingArea, str); }
+	ReadStuff(2, WorkingArea);
 
 	while ( ! WorkingArea.eof() )
 	{
 		size_t founded;
 		int amOfEl;
-		WorkingArea >> buf1;
-		if(buf1 == -1) // если считал все группы
+		WorkingArea >> num;
+		if (num == -1) // если считал все группы
 			break;     // то выйти
 		WorkingArea >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf2;
 		amOfEl = buf2;
-		getline(WorkingArea, str);
+		ReadStuff(1, WorkingArea);
 		getline(WorkingArea, str);
 
 		founded = str.find("nvk1");
 		if(founded!=std::string::npos)
 		{
-			numbers.clear();
 			for(int i = 0; i < amOfEl; ++i)
 			{
 				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
@@ -140,7 +135,6 @@ void FEM::InputMesh(){
 			founded=str.find("nvk2_1");
 			if(founded!=std::string::npos)
 			{
-				numbers.clear();
 				for(int i = 0; i < amOfEl; ++i)
 				{
 					WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
@@ -152,7 +146,6 @@ void FEM::InputMesh(){
 				founded=str.find("nvk2_2");
 				if(founded!=std::string::npos)
 				{
-					numbers.clear();
 					for(int i = 0; i < amOfEl; ++i)
 					{
 						WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
@@ -166,11 +159,10 @@ void FEM::InputMesh(){
 
 	cout << "1. Mesh was readed" << endl;
 	cout << "\t Mesh info: " << endl;
-	cout << "\t Nodes: \t\t\t" << m_xyz.size() << endl;
-	cout << "\t Nodes in 1st boundary cond-s: \t" << m_nvk1.size() << endl;
-	cout << "\t Nodes in 2d boundary cond-s: \t" << m_nvk2.size() << endl;
-	cout << "\t Finite elements: \t\t" << m_nvtr.size() << endl;
-	cout << endl;
+	cout << "\t Nodes: " << m_xyz.size() << endl;
+	cout << "\t Nodes in 1st boundary conditions: " << m_nvk1.size() << endl;
+	cout << "\t Nodes in 2d boundary conditions: " << m_nvk2.size() << endl;
+	cout << "\t Finite elements: " << m_nvtr.size() << endl;
 }
 
 //...........................................................................
@@ -206,7 +198,7 @@ void FEM::InputCheckMeshParameters()
 
 void FEM::SolveProblem()
 {
-	Input(); // ¬вЄл: 1) сетку. 2) параметры —Ћј”. 3) параметры задачи
+	Input();
 	SetDefault();
 	GenerateMatrixProfle();
 	CreateGlobalMatrixAndRightPart();
@@ -648,6 +640,7 @@ void FEM::Boundary_1(int num, double Ug)
 
 //...........................................................................
 
+// величина смещени€
 double FEM::GetUg(double x, double y, double z)
 {
 	x; y; z;
@@ -656,6 +649,7 @@ double FEM::GetUg(double x, double y, double z)
 
 //...........................................................................
 
+// величина т€ги верхней грани
 double FEM::GetTraction_1(double x, double y, double z)
 {
 	x; y; z;
@@ -664,6 +658,7 @@ double FEM::GetTraction_1(double x, double y, double z)
 
 //...........................................................................
 
+// величина т€ги нижней грани
 double FEM::GetTraction_2(double x, double y, double z)
 {
 	x; y; z;
@@ -721,29 +716,7 @@ void FEM::PrintFigure()
 	sort(zPoints.begin(),zPoints.end());
 	//и удал€ем дубликаты
 	zPoints.resize(unique(zPoints.begin(),zPoints.end())-zPoints.begin());
-
-	cout << "Steps X: " << xPoints.size() << " of " << m_amountOfStepsX << endl;
-	cout << "Steps Y: " << yPoints.size() << " of " << m_amountOfStepsY << endl;
-	cout << "Steps Z: " << zPoints.size() << " of " << m_amountOfStepsZ << endl;
-
-	cout << endl << "X steps:" << endl;
-	for (unsigned int i = 0; i < xPoints.size(); ++i)
-	{
-		cout << xPoints[i] << " ";
-	}
-
-	cout << endl << "Y steps:" << endl;
-	for (unsigned int i = 0; i < yPoints.size(); ++i)
-	{
-		cout << yPoints[i] << " ";
-	}
-
-	cout << endl << "Z steps:" << endl;
-	for (unsigned int i = 0; i < zPoints.size(); ++i)
-	{
-		cout << zPoints[i] << " ";
-	}
-
+	
 	Figure << xPoints[0] << '\t'
 	       << yPoints[0] << '\t'
 	       << zPoints[0] << '\t'

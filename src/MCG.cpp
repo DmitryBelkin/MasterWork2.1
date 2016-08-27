@@ -198,6 +198,8 @@ void MCG::MCG_LU()
 	Ux(U, temp1, weights);
 	weights = temp1;
 
+	cout << "6. Solution obtained" << endl;
+
 	WriteSolverInfoInFile   (iteration, norm);
 	WriteSolverInfoInConsole(iteration, norm);
 }
@@ -223,8 +225,8 @@ void MCG::WriteSolverInfoInFile(const int iterations, const double residual) con
 void MCG::WriteSolverInfoInConsole(const int iterations, const double residual) const
 {
 	cout.setf(ios::scientific); cout.precision(9);
-	cout << "Iterations = " << iterations << endl;
-	cout << "Residual   = " << residual << endl << endl;
+	cout << "\t Iterations = " << iterations << endl;
+	cout << "\t Residual   = " << residual << endl << endl;
 	cout.unsetf(ios::scientific);
 }
 

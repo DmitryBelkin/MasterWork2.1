@@ -3,7 +3,7 @@
 int main()
 {
 	FEM* problem = new FEM();
-	problem->SolveProblem ();
+	problem->SolveProblem();
 	//
 	problem->TransformMeshAfterDisplacement();
 	problem->GenerateMeshForCheck();
