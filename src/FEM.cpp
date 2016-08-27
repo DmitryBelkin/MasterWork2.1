@@ -111,18 +111,15 @@ void FEM::InputMesh(){
 
 	while ( ! WorkingArea.eof() )
 	{
-		size_t founded;
-		int amOfEl;
 		WorkingArea >> num;
 		if (num == -1) // если считал все группы
 			break;     // то выйти
-		WorkingArea >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf2;
-		amOfEl = buf2;
+		int amOfEl;
+		WorkingArea >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> buf1 >> amOfEl;
 		ReadStuff(1, WorkingArea);
 		getline(WorkingArea, str);
 
-		founded = str.find("nvk1");
-		if(founded!=std::string::npos)
+		if (str == "nvk1")
 		{
 			for(int i = 0; i < amOfEl; ++i)
 			{
@@ -130,28 +127,20 @@ void FEM::InputMesh(){
 				m_nvk1.push_back(buf2 - 1);
 			}
 		}
-		else
+		else if (str == "nvk2_1")
 		{
-			founded=str.find("nvk2_1");
-			if(founded!=std::string::npos)
+			for(int i = 0; i < amOfEl; ++i)
 			{
-				for(int i = 0; i < amOfEl; ++i)
-				{
-					WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
-					m_nvk2_1.push_back(buf2 - 1);
-				}
+				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
+				m_nvk2_1.push_back(buf2 - 1);
 			}
-			else
+		}
+		else if (str == "nvk2_2")
+		{
+			for(int i = 0; i < amOfEl; ++i)
 			{
-				founded=str.find("nvk2_2");
-				if(founded!=std::string::npos)
-				{
-					for(int i = 0; i < amOfEl; ++i)
-					{
-						WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
-						m_nvk2_2.push_back(buf2 - 1);
-					}
-				}
+				WorkingArea >> buf1 >> buf2 >> buf1 >> buf1;
+				m_nvk2_2.push_back(buf2 - 1);
 			}
 		}
 	}
