@@ -1,11 +1,13 @@
 #include "FEM.h"
+#include <boost\shared_ptr.hpp>
 
 int main()
 {
-	FEM* problem = new FEM();
-	problem->SolveProblem();
-	problem->TransformMeshAfterDisplacement();
-	problem->GenerateMeshForCheck();
-	problem->PrintFigure();
+	std::shared_ptr<FEM> pProblem(new FEM());
+	pProblem->SolveProblem();
+	pProblem->TransformMeshAfterDisplacement();
+	//pProblem->GenerateMeshForCheck();
+	//pProblem->PrintFigure();
+	pProblem->PrintMesh();
 	return 0;
 }

@@ -21,14 +21,13 @@ public:
 
 	// attributes
 	unsigned  int                          m_elemAmount;
-	std::vector < std::vector < double > > m_xyz, m_xyzDisplacement, m_checkMesh;
+	std::vector < std::vector < double > > m_xyz, m_xyzTransformed, m_checkMesh;
 	std::vector < std::vector < int > >    m_nvtr;
-	std::vector < int >                    m_nvk1, m_nvk2;
+	std::vector < int >                    m_nvk1, m_nvk2_1, m_nvk2_2;
 	double                                 m_xLeftCheckMesh, m_xRightCheckMesh,
 	                                       m_yLeftCheckMesh, m_yRightCheckMesh,
 	                                       m_zLeftCheckMesh, m_zRightCheckMesh;
 	unsigned int                           m_amountOfStepsX, m_amountOfStepsY, m_amountOfStepsZ;
-	std::vector < int >                    m_nvk2_1, m_nvk2_2;
 	double                                 m_nu, m_E;
 	vector < vector < double > >           m_C;
 
@@ -53,6 +52,7 @@ public:
 	void   AddNvtr(const vector <int> &mtr);
 	void   AddDegree(const vector <int> &mtr);
 	void   PrintFigure();
+	void   PrintMesh();
 	void   BoundaryConditions();
 	void   Boundary_1(int num, double Ug);
 	double GetUg(double x, double y, double z);

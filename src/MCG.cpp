@@ -70,7 +70,10 @@ void MCG::UTx(const vector <double> &EUf, vector <double> &x, const vector <doub
 
 double MCG::ScalarProduct(const vector <double> &v1, const vector <double> &v2) const
 {
-	return inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
+	double temp = 0;
+	for (int i = 0; i < n; ++i) temp += v1[i] * v2[i];
+	return temp;
+	//return inner_product(v1.begin(), v1.end(), v2.begin(), 0.0);
 }
 
 //...........................................................................
@@ -165,6 +168,8 @@ void MCG::MCG_LU()
 	UTx(U, r, temp1);
 	z = r_ = r;
 	t = NormVector(f);
+	cout << "NormVector(r) = " << NormVector(r) << endl;
+	cout << "t " << t << endl;
 	norm = NormVector(r) / t;
 	iteration = 1;
 	while (norm > m_eps && iteration < m_maxiter)

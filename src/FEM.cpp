@@ -12,6 +12,10 @@ const string inputSlaeParameters      = inputPrefix + "slae_parameters.txt";
 const string inputElastityParameters  = inputPrefix + "elastity_parameters.txt";
 const string inputCheckMeshParameters = inputPrefix + "check_mesh_parameters.txt";
 
+// @todo разобраться с расположением подобных переменных (присутствует в MCG.h)
+const string outputPrefix1 = "../resources/output/";
+const string outputFigure = outputPrefix1 + "outputFigure.dat";
+
 static void ReadStuff(const int amountOfLines, ifstream &file)
 {
 	string str;
@@ -81,19 +85,19 @@ void FEM::InputMesh(){
 		GetNumbers(numbers, str);
 		typeOfElement = numbers[numbers.size() - 1]; // количество считываемых элементов (прямая, треугольник, тетраэдр)
 	}
-	
+
 	vector <int> nvtrBuf(DOF_ELEM);
 	while (typeOfElement == 8) // считываю конечные элементы (параллелипипеды)
 	{
 		workingArea
-			>> nvtrBuf[4]
 			>> nvtrBuf[0]
-			>> nvtrBuf[2]
-			>> nvtrBuf[6]
-			>> nvtrBuf[5]
 			>> nvtrBuf[1]
 			>> nvtrBuf[3]
-			>> nvtrBuf[7];
+			>> nvtrBuf[2]
+			>> nvtrBuf[4]
+			>> nvtrBuf[5]
+			>> nvtrBuf[7]
+			>> nvtrBuf[6];
 
 		for (auto &value : nvtrBuf)
 			value -= 1;
@@ -150,7 +154,7 @@ void FEM::InputMesh(){
 	std::cout << "\t Mesh info: " << endl;
 	std::cout << "\t Nodes: " << m_xyz.size() << endl;
 	std::cout << "\t Nodes in 1st boundary conditions: " << m_nvk1.size() << endl;
-	std::cout << "\t Nodes in 2d boundary conditions: " << m_nvk2.size() << endl;
+	std::cout << "\t Nodes in 2d boundary conditions: " << m_nvk2_1.size() << " and " << m_nvk2_2.size() << endl;
 	std::cout << "\t Finite elements: " << m_nvtr.size() << endl;
 }
 
@@ -658,16 +662,16 @@ double FEM::GetTraction_2(double x, double y, double z)
 
 void FEM::PrintFigure()
 {
-	ofstream Figure("Figure_tecplot.dat");
-	Figure << "TITLE = \"U\"" << endl;
-	Figure << "VARIABLES = \"x\", \"y\", \"z\", \"p\"" << endl;
+	ofstream Figure("Figure.dat");
+	Figure << "TITLE = \"Figure\"" << endl;
+	Figure << "VARIABLES = \"X\", \"Y\", \"Z\", \"P\"" << endl;
 	//Figure << "ZONE i=" << m_amountOfStepsX << 
 	//             ", j=" << m_amountOfStepsY << 
 	//             ", k=" << m_amountOfStepsZ << 
 	//             ", F=POINT" << endl;
-	Figure << "ZONE i=" << 2 << 
-	             ", j=" << 2 << 
-	             ", k=" << 2 << 
+	Figure << "ZONE I=" << 2 << 
+	             ", J=" << 2 << 
+	             ", K=" << 2 << 
 	             ", F=POINT" << endl;
 
 	float value = 0;
@@ -757,13 +761,40 @@ void FEM::PrintFigure()
 
 //...........................................................................
 
+void FEM::PrintMesh()
+{
+	ofstream Figure(outputFigure);
+	Figure << "TITLE = \"Figure\"" << endl;
+	Figure << "VARIABLES = \"X\", \"Y\", \"Z\", \"P\"" << endl;
+	//Figure << 
+	//	"ZONE I=" << 2 <<
+	//	", J="    << 2 <<
+	//	", K="    << 2 <<
+	//	", F=POINT" << endl;
+
+	for (int i = 0; i < m_xyzTransformed.size(); ++i)
+	{
+		Figure
+			<< m_xyzTransformed[i][0] << " "
+			<< m_xyzTransformed[i][2] << " "
+			<< m_xyzTransformed[i][1] << " "
+			<< 1.0
+			<< endl;
+	}
+
+	Figure.close();
+}
+
+//...........................................................................
+
 void FEM::TransformMeshAfterDisplacement()
 {
+	m_xyzTransformed = m_xyz;
 	for (unsigned int i = 0; i < m_xyz.size(); ++i)
 	{
-		m_xyz[i][0] = m_xyz[i][0] + weights[i * DOF    ];
-		m_xyz[i][1] = m_xyz[i][1] + weights[i * DOF + 1];
-		m_xyz[i][2] = m_xyz[i][2] + weights[i * DOF + 2];
+		m_xyzTransformed[i][0] = m_xyz[i][0] + weights[i * DOF];
+		m_xyzTransformed[i][1] = m_xyz[i][1] + weights[i * DOF + 1];
+		m_xyzTransformed[i][2] = m_xyz[i][2] + weights[i * DOF + 2];
 	}
 }
 
