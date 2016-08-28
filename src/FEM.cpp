@@ -637,7 +637,7 @@ void FEM::Boundary_1(int num, double Ug)
 double FEM::GetUg(double x, double y, double z)
 {
 	x; y; z;
-	return 0.;
+	return 0.00001;
 }
 
 //...........................................................................
@@ -646,7 +646,7 @@ double FEM::GetUg(double x, double y, double z)
 double FEM::GetTraction_1(double x, double y, double z)
 {
 	x; y; z;
-	return 1.;
+	return 0.5;
 }
 
 //...........................................................................
@@ -655,7 +655,7 @@ double FEM::GetTraction_1(double x, double y, double z)
 double FEM::GetTraction_2(double x, double y, double z)
 {
 	x; y; z;
-	return -1.;
+	return -0.5;
 }
 
 //...........................................................................
