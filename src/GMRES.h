@@ -8,7 +8,7 @@ class GMRES
 private:
 
 	int n, m;
-	int maxIter, nIter, p;
+	int m_maxiter, nIter, p;
 	vector <int> ig, jg;
 	// исходна€ матрица 
 	vector <double> di, ggu, ggl;
@@ -21,36 +21,40 @@ private:
 
 public:
 
-	GMRES();
-	~GMRES();
+	GMRES()
+		: n(0)
+		, m_maxiter(100000)
+		, m_eps(1e-09)
+	{ };
+	~GMRES() { };
 
 	//линейное комбинирование результат в Y
-	void LinComb(vector <double> &x, double al, vector <double> &y, vector <double> &rez, int n);
+	void LinComb(const vector <double> &x, const double al, const vector <double> &y, vector <double> &rez, const int n);
 	//скал€рное произведение
-	double ScMult(vector <double> &x, vector <double> &y, int n);
+	double ScMult(const vector <double> &x, const vector <double> &y, const int n);
 	//норма вектора
-	double NormVect(vector <double> &x, int n);
+	double NormVect(const vector <double> &x, const int n);
 
 	//умножение вектора на скал€р
-	void AVec(vector <double> &x, double al, vector <double> &y, int n);
+	void AVec(const vector <double> &x, const double al, vector <double> &y, const int n);
 	//вывод вектора действительных чисел двойной точности
-	void dPrintVec(vector <char> &f, vector <double> &x, int n);
+	void dPrintVec(const char *f, const vector <double> &x, const int n);
 	//b=A*x            ====умножение матрицы на вектор 
 	void Ax(vector <double> &x, vector <double> &b, int n);
 	// вывод кв. матрицы
-	void PrintMatr(vector <vector<double>> &A, int n);
+	void PrintMatr(const vector <vector<double>> &A, const int n);
 	//–ешение треугольной —Ћј” Hy=g
 	int Calcx();
 	//”множение H[*][i] на матрицы √ивенса и g=G[i]g
-	void Givens(vector <double> &Hi, int i);
+	void Givens(vector <double> &Hi, const int i);
 	// GMRES
 	int Solve();
 	// неполное LU - разложение
 	void LUFactor();
 	// j-ый столбец на к-ую строку -сумма произведений элементов
-	double j_k(int j, int k);
+	double j_k(const int j, const int k);
 	// r0=L(-1)(f-Ax0) === пр€мой ход
-	void AssemblRo(vector <double> &X, vector <double> &Y);
+	void AssemblRo(const vector <double> &X, vector <double> &Y);
 	// x0=U(-1)r0      === обратный ход
 	void ExtractX0(vector <double> &X, vector <double> &Y);
 	// y=U*x           === произведение матрицы на вектор

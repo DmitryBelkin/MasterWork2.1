@@ -86,43 +86,18 @@ GMRES::GMRES()
 	for (i = 0; i<m + 1; i++)
 		V[i] = new double[n];
 }
-// дестракт
-GMRES :: ~GMRES()
-{
-	delete[] F;
-	delete[] X3;
-	delete[] ig;
-	delete[] jg;
-	delete[] di;
-	delete[] ggu;
-	delete[] ggl;
-	delete[] X0;
-	delete[] Mdi;
-	delete[] Mggu;
-	delete[] Mggl;
-
-	delete[] H;
-	delete[] V;
-	delete[] G;
-	delete[] C;
-	delete[] S;
-	delete[] R0;
-	delete[] W;
-}
 
 void GMRES::LUFactor()
 {
-	int i, j, k;
 	Mdi.resize(n);
 	Mggl.resize(ig[n] - 1);
 	Mggu.resize(ig[n] - 1);
-
 	Mdi[0] = di[0];
-	for (i = 1; i<n; i++)
+	for (int i = 1; i < n; ++i)
 	{
-		for (j = ig[i] - 1; j < ig[i + 1] - 1; j++)
+		for (int j = ig[i] - 1; j < ig[i + 1] - 1; ++j)
 		{
-			k = jg[j];
+			const int k = jg[j];
 			Mggl[j] = ggl[j] - j_k(i, k);
 			Mggu[j] = (ggu[j] - j_k(k, i)) / Mdi[k];
 		}
@@ -130,16 +105,15 @@ void GMRES::LUFactor()
 	}
 }
 
-double GMRES::j_k(int j, int k)
+double GMRES::j_k(const int j, const int k)
 {
-	int p, q, pj, qj;
 	double result = 0.0;
-	p = ig[j] - 1;
-	q = ig[k] - 1;
+	int p = ig[j] - 1;
+	int q = ig[k] - 1;
 	while (p < (ig[j + 1] - 1) && q < (ig[k + 1] - 1))
 	{
-		pj = jg[p];
-		qj = jg[q];
+		const int pj = jg[p];
+		const int qj = jg[q];
 		if (pj < qj)
 			p++;
 		else
@@ -155,16 +129,16 @@ double GMRES::j_k(int j, int k)
 	return result;
 }
 
-void GMRES::AssemblRo(vector <double> &X, vector <double> &Y)
+void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 {
-	int i, j, k;
-	for (k = 0; k < n; k++)
+	int j;
+	for (int k = 0; k < n; k++)
 	{
 		Y[k] = 0.0;
 		j = ig[k] - 1;
 		while (j < ig[k + 1] - 1)
 		{
-			i = jg[j];
+			const int i = jg[j];
 			Y[k] += Mggl[j] * Y[i];
 			j++;
 		}
@@ -175,72 +149,75 @@ void GMRES::AssemblRo(vector <double> &X, vector <double> &Y)
 
 void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 {
-	int i, j, l;
-	for (i = 0; i<n; i++)
-		Y[i] = X[i];
-	for (j = n - 1; j > 0; j--)
+	for (int i = 0; i < n; ++i)
 	{
-		l = ig[j + 1];
+		Y[i] = X[i];
+	}
+
+	for (int j = n - 1; j > 0; j--)
+	{
+		int l = ig[j + 1];
 		while (l > ig[j])
 		{
-			i = jg[l - 2];
+			const int i = jg[l - 2];
 			Y[i] -= Mggu[l - 2] * Y[j];
 			l--;
 		}
 	}
 }
 
-void GMRES::LinComb(vector <double> &x, double al, vector <double> &y, vector <double> &rez, int n)
+void GMRES::LinComb(const vector <double> &x, const double al, const vector <double> &y, vector <double> &rez, const int n)
 {
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i < n; ++i)
 		rez[i] = y[i] + al*x[i];
 }
 
 //скалярное произведение
-double GMRES::ScMult(vector <double> &x, vector <double> &y, int n)
+double GMRES::ScMult(const vector <double> &x, const vector <double> &y, const int n)
 {
 	double s = 0;
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i < n; ++i)
 		s += x[i] * y[i];
 	return s;
 }
 
 //норма вектора
-double GMRES::NormVect(vector <double> &x, int n)
+double GMRES::NormVect(const vector <double> &x, const int n)
 {
 	double s = 0;
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i < n; ++i)
 		s += x[i] * x[i];
 	return sqrt(s);
 }
 
 void GMRES::Ux(vector <double> &x, vector <double> &y)
 {
-	int i, j, k;
-	for (i = 0; i<n; i++)
-		y[i] = x[i];
-	for (i = 1; i<n; i++)
+	for (int i = 0; i < n; ++i)
 	{
-		for (j = ig[i] - 1; j < ig[i + 1] - 1; j++)
+		y[i] = x[i];
+	}
+	for (int i = 1; i < n; ++i)
+	{
+		for (int j = ig[i] - 1; j < ig[i + 1] - 1; ++j)
 		{
-			k = jg[j];
+			const int k = jg[j];
 			y[k] += Mggu[k] * x[i];
 		}
 	}
 }
 
 //умножение вектора на скаляр
-void GMRES::AVec(vector <double> &x, double al, vector <double> &y, int n)
+void GMRES::AVec(const vector <double> &x, const double al, vector <double> &y, const int n)
 {
 	for (int i = 0; i<n; i++)
 		y[i] = al * x[i];
 }
 
 //вывод вектора действительных чисел двойной точности
-void GMRES::dPrintVec(char *f, vector <double> &x, int n)
+void GMRES::dPrintVec(const  char *f, const  vector <double> &x, const  int n)
 {
 	FILE *file = fopen(f, "wt");
-	for (int k = 0; k<n; k++)
+	for (int k = 0; k < n; ++k)
 		fprintf(file, "%12lf\n", x[k]);
 	fprintf(file, "\n");
 	fclose(file);
@@ -250,14 +227,17 @@ void GMRES::dPrintVec(char *f, vector <double> &x, int n)
 //умножение матрицы на вектор
 void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
 {
-	int i, j;
-	for (i = 0; i<n; i++)
-		b[i] = di[i] * x[i];
-	for (i = 0; i<n; i++)
-	for (j = ig[i] - 1; j<ig[i + 1] - 1; j++)
+	for (int i = 0; i < n; ++i)
 	{
-		b[i] += ggl[j] * x[jg[j]];
-		b[jg[j]] += ggu[j] * x[i];
+		b[i] = di[i] * x[i];
+	}
+	for (int i = 0; i < n; ++i)
+	{
+		for (int j = ig[i] - 1; j < ig[i + 1] - 1; ++j)
+		{
+			b[i] += ggl[j] * x[jg[j]];
+			b[jg[j]] += ggu[j] * x[i];
+		}
 	}
 }
 
@@ -265,17 +245,20 @@ void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
 int GMRES::Calcx()
 {
 	double s = 1;
-	int i, k;
-	for (i = 0; i<p; i++)
+	for (int i = 0; i < p; ++i)
+	{
 		s *= H[i][i];
+	}
 	if (!(s<1e-30))
 	{
 		G[p - 1] /= H[p - 1][p - 1];
-		for (i = p - 2; i >= 0; i--)
+		for (int i = p - 2; i >= 0; i--)
 		{
 			s = 0;
-			for (k = i + 1; k<p; k++)
+			for (int k = i + 1; k < p; ++k)
+			{
 				s += H[k][i] * G[k];
+			}
 			G[i] = (G[i] - s) / H[i][i];
 		}
 		return 0;
@@ -287,13 +270,14 @@ int GMRES::Calcx()
 	}
 }
 
-void GMRES::PrintMatr(vector <vector <double>> &A, int n)
+void GMRES::PrintMatr(const vector <vector <double>> &A, const int n)
 {
-	int i, j;
-	for (i = 0; i<n + 1; i++)
+	for (int i = 0; i < n + 1; ++i)
 	{
-		for (j = 0; j<n; j++)
+		for (int j = 0; j < n; ++j)
+		{
 			printf("%lf ", A[j][i]);
+		}
 		printf("\n");
 	}
 }
@@ -306,18 +290,19 @@ void CalcSC(double& x, double& y, double& c, double& s)
 	y = 0;
 }
 
-void Rot(double& x, double& y, double& c, double& s)
+void Rot(double& x, double& y, const double& c, const double& s)
 {
-	double x1;
-	x1 = c*x - s*y;
+	const double x1 = c*x - s*y;
 	y = s*x + c*y;
 	x = x1;
 }
 
-void GMRES::Givens(vector <double> &Hi, int i)
+void GMRES::Givens(vector <double> &Hi, const int i)
 {
-	for (int k1 = 0; k1<i; k1++)
+	for (int k1 = 0; k1 < i; ++k1)
+	{
 		Rot(Hi[k1], Hi[k1 + 1], C[k1], S[k1]);
+	}
 	CalcSC(Hi[i], Hi[i + 1], C[i], S[i]);
 	Rot(G[i], G[i + 1], C[i], S[i]);
 }
@@ -423,7 +408,7 @@ int GMRES::Solve() //  решатель
 		AssemblRo(Z, R0);
 		betta = NormVect(R0, n);
 		cureps = betta / oldbetta;
-	} while ((cureps > eps) && (nIter < maxIter));	// выход если достигнута какая-то невязка
+	} while ((cureps > eps) && (nIter < m_maxiter));	// выход если достигнута какая-то невязка
 	// или превышено число итераций
 	time(&t2); // засекли время последней операции 
 	printf("nIter=%d\n", nIter);
@@ -438,6 +423,6 @@ int GMRES::Solve() //  решатель
 	fprintf(file1, "OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
 
 	if (cureps <= eps)    return  0;
-	if (nIter >= maxIter) return -1;
+	if (nIter >= m_maxiter) return -1;
 	return -2;
 }
