@@ -1,56 +1,48 @@
-#include<stdio.h>
-#include<math.h>
-#include <time.h>
-#include <conio.h>
+#include <iostream>
+#include <vector>
 
+using namespace std;
 
 class GMRES
 {
 private:
 
-	int n;
-	int *ig;
-	int *jg;
-	// исходна€ матрица 
-	double *di;
-	double *ggu;
-	double *ggl;
-	// матрица предобусловливани€
-	double *Mdi;
-	double *Mggu;
-	double *Mggl;
-
-	int m;
-
-	double *X3, *X0, *F, *R0, *W, *G, **H, **V, *C, *S;
-	double betta, eps, oldbetta, cureps;
+	int n, m;
 	int maxIter, nIter, p;
-	FILE *file1;
+	vector <int> ig, jg;
+	// исходна€ матрица 
+	vector <double> di, ggu, ggl;
+	// матрица предобусловливани€
+	vector <double> Mdi, Mggu, Mggl;
+
+	vector <double> X3, X0, F, R0, W, G, C, S;
+	vector <vector <double>> H, V;
+	double betta, eps, oldbetta, cureps;
 
 public:
 
 	GMRES();
 	~GMRES();
 
-
 	//линейное комбинирование результат в Y
-	void LinComb(double *x, double al, double *y, double *rez, int n);
+	void LinComb(vector <double> &x, double al, vector <double> &y, vector <double> &rez, int n);
 	//скал€рное произведение
-	double ScMult(double *x, double *y, int n);
+	double ScMult(vector <double> &x, vector <double> &y, int n);
 	//норма вектора
-	double NormVect(double *x, int n);
+	double NormVect(vector <double> &x, int n);
+
 	//умножение вектора на скал€р
-	void AVec(double *x, double al, double *y, int n);
+	void AVec(vector <double> &x, double al, vector <double> &y, int n);
 	//вывод вектора действительных чисел двойной точности
-	void dPrintVec(char *f, double *x, int n);
+	void dPrintVec(vector <char> &f, vector <double> &x, int n);
 	//b=A*x            ====умножение матрицы на вектор 
-	void Ax(double *x, double *b, int n);
+	void Ax(vector <double> &x, vector <double> &b, int n);
 	// вывод кв. матрицы
-	void PrintMatr(double **A, int n);
+	void PrintMatr(vector <vector<double>> &A, int n);
 	//–ешение треугольной —Ћј” Hy=g
 	int Calcx();
 	//”множение H[*][i] на матрицы √ивенса и g=G[i]g
-	void Givens(double *Hi, int i);
+	void Givens(vector <double> &Hi, int i);
 	// GMRES
 	int Solve();
 	// неполное LU - разложение
@@ -58,9 +50,9 @@ public:
 	// j-ый столбец на к-ую строку -сумма произведений элементов
 	double j_k(int j, int k);
 	// r0=L(-1)(f-Ax0) === пр€мой ход
-	void AssemblRo(double *X, double *Y);
+	void AssemblRo(vector <double> &X, vector <double> &Y);
 	// x0=U(-1)r0      === обратный ход
-	void ExtractX0(double *X, double *Y);
+	void ExtractX0(vector <double> &X, vector <double> &Y);
 	// y=U*x           === произведение матрицы на вектор
-	void Ux(double *x, double *y);
+	void Ux(vector <double> &x, vector <double> &y);
 };
