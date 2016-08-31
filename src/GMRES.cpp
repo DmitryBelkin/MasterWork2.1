@@ -113,9 +113,9 @@ GMRES :: ~GMRES()
 void GMRES::LUFactor()
 {
 	int i, j, k;
-	Mdi = new double[n];
-	Mggl = new double[ig[n] - 1];
-	Mggu = new double[ig[n] - 1];
+	Mdi.resize(n);
+	Mggl.resize(ig[n] - 1);
+	Mggu.resize(ig[n] - 1);
 
 	Mdi[0] = di[0];
 	for (i = 1; i<n; i++)
@@ -155,7 +155,7 @@ double GMRES::j_k(int j, int k)
 	return result;
 }
 
-void GMRES::AssemblRo(double *X, double *Y)
+void GMRES::AssemblRo(vector <double> &X, vector <double> &Y)
 {
 	int i, j, k;
 	for (k = 0; k < n; k++)
@@ -173,7 +173,7 @@ void GMRES::AssemblRo(double *X, double *Y)
 }
 
 
-void GMRES::ExtractX0(double *X, double *Y)
+void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 {
 	int i, j, l;
 	for (i = 0; i<n; i++)
@@ -190,14 +190,14 @@ void GMRES::ExtractX0(double *X, double *Y)
 	}
 }
 
-void GMRES::LinComb(double *x, double al, double *y, double *rez, int n)
+void GMRES::LinComb(vector <double> &x, double al, vector <double> &y, vector <double> &rez, int n)
 {
 	for (int i = 0; i<n; i++)
 		rez[i] = y[i] + al*x[i];
 }
 
 //скалярное произведение
-double GMRES::ScMult(double *x, double *y, int n)
+double GMRES::ScMult(vector <double> &x, vector <double> &y, int n)
 {
 	double s = 0;
 	for (int i = 0; i<n; i++)
@@ -206,7 +206,7 @@ double GMRES::ScMult(double *x, double *y, int n)
 }
 
 //норма вектора
-double GMRES::NormVect(double *x, int n)
+double GMRES::NormVect(vector <double> &x, int n)
 {
 	double s = 0;
 	for (int i = 0; i<n; i++)
@@ -214,7 +214,7 @@ double GMRES::NormVect(double *x, int n)
 	return sqrt(s);
 }
 
-void GMRES::Ux(double *x, double *y)
+void GMRES::Ux(vector <double> &x, vector <double> &y)
 {
 	int i, j, k;
 	for (i = 0; i<n; i++)
@@ -230,14 +230,14 @@ void GMRES::Ux(double *x, double *y)
 }
 
 //умножение вектора на скаляр
-void GMRES::AVec(double *x, double al, double *y, int n)
+void GMRES::AVec(vector <double> &x, double al, vector <double> &y, int n)
 {
 	for (int i = 0; i<n; i++)
 		y[i] = al * x[i];
 }
 
 //вывод вектора действительных чисел двойной точности
-void GMRES::dPrintVec(char *f, double *x, int n)
+void GMRES::dPrintVec(char *f, vector <double> &x, int n)
 {
 	FILE *file = fopen(f, "wt");
 	for (int k = 0; k<n; k++)
@@ -248,7 +248,7 @@ void GMRES::dPrintVec(char *f, double *x, int n)
 }
 
 //умножение матрицы на вектор
-void GMRES::Ax(double *x, double *b, int n)
+void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
 {
 	int i, j;
 	for (i = 0; i<n; i++)
@@ -287,7 +287,7 @@ int GMRES::Calcx()
 	}
 }
 
-void GMRES::PrintMatr(double **A, int n)
+void GMRES::PrintMatr(vector <vector <double>> &A, int n)
 {
 	int i, j;
 	for (i = 0; i<n + 1; i++)
@@ -314,7 +314,7 @@ void Rot(double& x, double& y, double& c, double& s)
 	x = x1;
 }
 
-void GMRES::Givens(double *Hi, int i)
+void GMRES::Givens(vector <double> &Hi, int i)
 {
 	for (int k1 = 0; k1<i; k1++)
 		Rot(Hi[k1], Hi[k1 + 1], C[k1], S[k1]);
@@ -324,8 +324,7 @@ void GMRES::Givens(double *Hi, int i)
 
 int GMRES::Solve() //  решатель 
 {
-	double *Z;
-	Z = new double[n];
+	vector <double> Z(n, 0);
 	int i, j, k;
 	time_t t1, t2;
 	file1 = fopen("exit.txt", "w");
@@ -438,7 +437,6 @@ int GMRES::Solve() //  решатель
 	printf("OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
 	fprintf(file1, "OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
 
-	delete[] Z;
 	if (cureps <= eps)    return  0;
 	if (nIter >= maxIter) return -1;
 	return -2;
