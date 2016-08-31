@@ -1,91 +1,52 @@
 #include "GMRES.h"
 
-GMRES::GMRES()
-{
-	int i;
-
-	file1 = fopen("parameters.txt", "rt");
-	//считываем размерность пространства
-	fscanf(file1, "%d", &n);
-	//считываем размерность пространства Крылова
-	fscanf(file1, "%d", &m);
-	//считываем требуемую точность
-	fscanf(file1, "%lg", &eps);
-	//считываем максимально допустимое число итераций
-	fscanf(file1, "%d", &maxIter);
-	fclose(file1);
-
-	//считываем вектор правой части 
-	F = new double[n];
-	file1 = fopen("vect.txt", "rt");
-	for (i = 0; i<n; i++)
-		fscanf(file1, "%lg", &F[i]);
-	fclose(file1);
-
-	//считываем точное решение
-	X3 = new double[n];
-	file1 = fopen("linear.txt", "rt");
-	for (i = 0; i<n; i++)
-		fscanf(file1, "%lg", &X3[i]);
-	fclose(file1);
-
-	// ввод матрицы
-	file1 = fopen("matr.txt", "rt");
-
-	fscanf(file1, "%d", &n); // размерность матрицы
-
-	//считываем индексный массив ig
-	ig = new int[n + 1];
-	for (i = 0; i<n + 1; i++)
-		fscanf(file1, "%d", &ig[i]);
-
-	int kol = ig[n] - 1;
-
-	//считываем индексный массив jg
-	jg = new int[kol];
-	for (i = 0; i<kol; i++)
-		fscanf(file1, "%d", &jg[i]);
-
-	//считываем нижний треугольник
-	ggl = new double[kol];
-	for (i = 0; i<kol; i++)
-		fscanf(file1, "%lg", &ggl[i]);
-
-	//считываем верхний треугольник
-	ggu = new double[kol];
-	for (i = 0; i<kol; i++)
-		fscanf(file1, "%lg", &ggu[i]);
-	//считываем главную диагональ
-	di = new double[n];
-	for (i = 0; i<n; i++)
-		fscanf(file1, "%lg", &di[i]);
-
-	fclose(file1);
-
-	//задаём начальное приближение 
-	file1 = fopen("xo.txt", "rt");
-
-	X0 = new double[n];
-	for (i = 0; i<n; i++)
-		fscanf(file1, "%lg", &X0[i]);
-
-	fclose(file1);
-	// выделим память на все оставшееся
-	R0 = new double[n];
-	W = new double[n];
-	G = new double[m + 1];
-	C = new double[m];
-	S = new double[m];
-	H = new double *[m];
-
-	for (i = 0; i<m; i++)
-		H[i] = new double[m + 1];
-
-	V = new double *[m + 1];
-
-	for (i = 0; i<m + 1; i++)
-		V[i] = new double[n];
-}
+////GMRES::GMRES()
+////{
+////	//считываем размерность пространства Крылова
+////	//m = 
+////
+////	//считываем вектор правой части 
+////	F.resize(n, 0);
+////
+////	//считываем точное решение
+////	X3.resize(n, 0);
+////
+////	// ввод матрицы
+////
+////	//считываем индексный массив ig
+////	ig.resize(n + 1, 0);
+////
+////	int kol = ig[n] - 1;
+////
+////	//считываем индексный массив jg
+////	jg.resize(kol, 0);
+////
+////	//считываем нижний треугольник
+////	ggl.resize(kol, 0);
+////
+////	//считываем верхний треугольник
+////	ggu.resize(kol, 0);
+////
+////	//считываем главную диагональ
+////	di.resize(n, 0);
+////
+////	//задаём начальное приближение 
+////	X0.resize(n, 0);
+////
+////	// выделим память на все оставшееся
+////	R0.resize(n, 0);
+////	W.resize(n, 0);
+////	G.resize(m + 1, 0);
+////	C.resize(m, 0);
+////	S.resize(m, 0);
+////	H.resize(m);
+////	for (int i = 0; i < m; ++i)
+////		H[i].resize(m + 1, 0);
+////
+////	V.resize(m + 1);
+////	for (int i = 0; i < m + 1; ++i)
+////		V[i].resize(n, 0);
+////}
 
 void GMRES::LUFactor()
 {
@@ -116,15 +77,14 @@ double GMRES::j_k(const int j, const int k)
 		const int qj = jg[q];
 		if (pj < qj)
 			p++;
-		else
-		if (pj > qj)
-			q++;
-		else
-		{
-			result += Mggl[p] * Mggu[q];
-			p++;
-			q++;
-		}
+		else if (pj > qj)
+				q++;
+			else
+			{
+				result += Mggl[p] * Mggu[q];
+				p++;
+				q++;
+			}
 	}
 	return result;
 }
@@ -132,7 +92,7 @@ double GMRES::j_k(const int j, const int k)
 void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 {
 	int j;
-	for (int k = 0; k < n; k++)
+	for (int k = 0; k < n; ++k)
 	{
 		Y[k] = 0.0;
 		j = ig[k] - 1;
@@ -209,7 +169,7 @@ void GMRES::Ux(vector <double> &x, vector <double> &y)
 //умножение вектора на скаляр
 void GMRES::AVec(const vector <double> &x, const double al, vector <double> &y, const int n)
 {
-	for (int i = 0; i<n; i++)
+	for (int i = 0; i<n; ++i)
 		y[i] = al * x[i];
 }
 
@@ -249,7 +209,7 @@ int GMRES::Calcx()
 	{
 		s *= H[i][i];
 	}
-	if (!(s<1e-30))
+	if (!(s < 1e-30))
 	{
 		G[p - 1] /= H[p - 1][p - 1];
 		for (int i = p - 2; i >= 0; i--)
@@ -310,22 +270,9 @@ void GMRES::Givens(vector <double> &Hi, const int i)
 int GMRES::Solve() //  решатель 
 {
 	vector <double> Z(n, 0);
-	int i, j, k;
 	time_t t1, t2;
-	file1 = fopen("exit.txt", "w");
-	printf("n=%d\n", n);
-	fprintf(file1, "n=%d\n", n);
-	printf("m=%d\n", m);
-	fprintf(file1, "m=%d\n", m);
-	printf("Required precision=%le\n", eps);
-	fprintf(file1, "Required precision=%le\n", eps);
-	printf("maxIter=%d\n", maxIter);
-	fprintf(file1, "maxIter=%d\n", maxIter);
-
-	time(&t1); // засекли время входа в цикл
 
 	LUFactor(); // нашли матрицу предобусловливания
-
 	p = m; // выбрали размер подпространства Крылова
 
 	Ax(X0, W, n);				// 
@@ -335,10 +282,9 @@ int GMRES::Solve() //  решатель
 	ExtractX0(X0, X0);			// x=U(-1)x  
 	nIter = 0;					// 
 
-	//BEGIN
 	do
 	{
-		nIter++;				//
+		nIter++;
 		// 
 		//  ГМРЕС - способ решать СЛАУ не в нашем пространстве 
 		//  а в пространстве меньшей размерности - пространстве Крылова
@@ -348,38 +294,35 @@ int GMRES::Solve() //  решатель
 		//	и решим её, затем опять повернем => получим результат, причем
 		//  гораздо быстрее, итеративно и временно, чем не поворачивающие методы - МСГ, ЛОС и т.д.
 
-		for (i = 0; i<m; i++)
-		for (j = 0; j<m + 1; j++)
-			H[i][j] = 0;			//	матрица поворота - Гивенса
+		for (int i = 0; i < m; ++i)
+			for (int j = 0; j < m + 1; ++j)
+				H[i][j] = 0; // матрица поворота - Гивенса
 
 		G[0] = betta;
-		for (i = 1; i<m + 1; i++) 	G[i] = 0; // вектор
+		for (int i = 1; i < m + 1; ++i) G[i] = 0; // вектор
 
 		AVec(R0, (1 / betta), V[0], n);  // касается поворота 
 
-		for (i = 0; i<m; i++)							// используем пространство Крылова			
-		{											// 
+		for (int i = 0; i < m; ++i) // используем пространство Крылова
+		{
 			ExtractX0(V[i], W);
 			Ax(W, Z, n);
 			AssemblRo(Z, W);
-			//  поиск матрицы поворота (метод Гивенса)
-			for (k = 0; k <= i; k++)
+			// поиск матрицы поворота (метод Гивенса)
+			for (int k = 0; k <= i; ++k)
 			{
 				H[i][k] = ScMult(W, V[k], n);
 				LinComb(V[k], (-H[i][k]), W, W, n);
-			}//for k
+			}
 
 			H[i][i + 1] = NormVect(W, n);
-
 			AVec(W, (1 / H[i][i + 1]), V[i + 1], n);
-
 			Givens(H[i], i);
-			if (fabs(G[i + 1])<eps)
+			if (fabs(G[i + 1]) < m_eps)
 			{
 				p = i;
 				break;
 			}
-			// 
 		}
 
 		if (abs(p) == 0) break;
@@ -393,13 +336,13 @@ int GMRES::Solve() //  решатель
 		// xk= xk+ sum(i=1,p; yi*vi)
 		// vi - базис подпространства
 		// yi - к-ты 
-		for (i = 0; i<p; i++)
+		for (int i = 0; i < p; ++i)
 		{
 			ExtractX0(V[i], Z);
 			LinComb(Z, G[i], X0, X0, n);
 		}
 
-		if (p<m) break; // если наше подпространство оказалось меньше
+		if (p < m) break; // если наше подпространство оказалось меньше
 
 		// иначе 
 		// r0 = L(-1)(f-Axk)
@@ -408,21 +351,19 @@ int GMRES::Solve() //  решатель
 		AssemblRo(Z, R0);
 		betta = NormVect(R0, n);
 		cureps = betta / oldbetta;
-	} while ((cureps > eps) && (nIter < m_maxiter));	// выход если достигнута какая-то невязка
-	// или превышено число итераций
-	time(&t2); // засекли время последней операции 
-	printf("nIter=%d\n", nIter);
-	fprintf(file1, "nIter=%d\n", nIter);
-	printf("Real precision=%le\n", cureps);
-	fprintf(file1, "Real precision=%le\n", cureps);
-	fprintf(file1, "TIME: %ld\n", t2 - t1);
-	dPrintVec("res.txt", X0, n);
-	for (i = 0; i<n; i++)
-		X0[i] = X3[i] - X0[i];
-	printf("OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
-	fprintf(file1, "OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
+	} while ((cureps > m_eps) && (nIter < m_maxiter));	// выход если достигнута какая-то невязка
 
-	if (cureps <= eps)    return  0;
-	if (nIter >= m_maxiter) return -1;
+	// или превышено число итераций
+	printf("nIter=%d\n", nIter);
+	printf("Real precision=%le\n", cureps);
+	dPrintVec("res.txt", X0, n);
+	for (int i = 0; i < n; ++i)
+	{
+		X0[i] = X3[i] - X0[i];
+	}
+	printf("OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
+
+	if (cureps <= m_eps    ) return  0;
+	if (nIter  >= m_maxiter) return -1;
 	return -2;
 }

@@ -17,7 +17,7 @@ private:
 
 	vector <double> X3, X0, F, R0, W, G, C, S;
 	vector <vector <double>> H, V;
-	double betta, eps, oldbetta, cureps;
+	double betta, m_eps, oldbetta, cureps;
 
 public:
 
