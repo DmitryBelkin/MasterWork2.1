@@ -150,7 +150,7 @@ void FEM::InputMesh(){
 	}
 	workingArea.close();
 
-	std::cout << "1. Mesh was readed" << endl;
+	std::cout << "Mesh was readed" << endl;
 	std::cout << "\t Mesh info: " << endl;
 	std::cout << "\t Nodes: " << m_xyz.size() << endl;
 	std::cout << "\t Nodes in 1st boundary conditions: " << m_nvk1.size() << endl;
@@ -230,7 +230,7 @@ void FEM::GenerateMatrixProfle()
 	}
 	ggl.resize(ia[n]);
 	ggu.resize(ia[n]);
-	cout << "2. Matrix profle was created" << endl;
+	cout << "Matrix profle was created" << endl;
 }
 
 //...........................................................................
@@ -421,11 +421,11 @@ void FEM::CreateGlobalMatrixAndRightPart()
 		AddLocalToGlobal(m_nvtr[i], KLocal, b);
 	}
 
-	cout << "3. Matrix and right part without boundary conditions created" << endl;
+	cout << "Matrix and right part without boundary conditions created" << endl;
 
 	BoundaryConditions();
 
-	cout << "4. Boundary conditions considered" << endl;
+	cout << "Boundary conditions considered" << endl;
 }
 
 //...........................................................................

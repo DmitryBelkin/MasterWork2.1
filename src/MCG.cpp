@@ -146,7 +146,7 @@ void MCG::CreateLU()
 		LUdi[i] = di[i] - sd;
 	}
 
-	cout << "5. LU - factorization passed" << endl;
+	cout << "LU - factorization passed" << endl;
 }
 
 //...........................................................................
