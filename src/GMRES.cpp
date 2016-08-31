@@ -59,7 +59,7 @@ void GMRES::LUFactor()
 		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
 		{
 			const int k = ja[j];
-			Mggl[j] = ggl[j] - j_k(i, k);
+			Mggl[j] =  ggl[j] - j_k(i, k);
 			Mggu[j] = (ggu[j] - j_k(k, i)) / Mdi[k];
 		}
 		Mdi[i] = di[i] - j_k(i, i);
@@ -91,11 +91,10 @@ double GMRES::j_k(const int j, const int k)
 
 void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 {
-	int j;
 	for (int k = 0; k < n; ++k)
 	{
 		Y[k] = 0.0;
-		j = ia[k] - 1;
+		int j = ia[k] - 1;
 		while (j < ia[k + 1] - 1)
 		{
 			const int i = ja[j];
@@ -129,7 +128,9 @@ void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 void GMRES::LinComb(const vector <double> &x, const double al, const vector <double> &y, vector <double> &rez, const int n)
 {
 	for (int i = 0; i < n; ++i)
+	{
 		rez[i] = y[i] + al*x[i];
+	}
 }
 
 //скалярное произведение
@@ -181,7 +182,6 @@ void GMRES::dPrintVec(const  char *f, const  vector <double> &x, const  int n)
 		fprintf(file, "%12lf\n", x[k]);
 	fprintf(file, "\n");
 	fclose(file);
-
 }
 
 //умножение матрицы на вектор
@@ -195,7 +195,7 @@ void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
 	{
 		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
 		{
-			b[i] += ggl[j] * x[ja[j]];
+			b[i]     += ggl[j] * x[ja[j]];
 			b[ja[j]] += ggu[j] * x[i];
 		}
 	}
@@ -270,22 +270,20 @@ void GMRES::Givens(vector <double> &Hi, const int i)
 int GMRES::Solve() //  решатель 
 {
 	vector <double> Z(n, 0);
-	time_t t1, t2;
 
 	LUFactor(); // нашли матрицу предобусловливания
 	p = m; // выбрали размер подпространства Крылова
 
-	Ax(X0, W, n);				// 
-	LinComb(W, (-1), F, Z, n); //  z =(f-Ax0)
-	AssemblRo(Z, R0);			//	r=Lz	
-	oldbetta = betta = NormVect(R0, n); // 
-	ExtractX0(X0, X0);			// x=U(-1)x  
-	nIter = 0;					// 
+	Ax(X0, W, n);						//
+	LinComb(W, (-1), F, Z, n);			// z =(f-Ax0)
+	AssemblRo(Z, R0);					// r=Lz
+	oldbetta = betta = NormVect(R0, n); //
+	ExtractX0(X0, X0);					// x=U(-1)x
+	nIter = 0;							// 
 
 	do
 	{
 		nIter++;
-		// 
 		//  ГМРЕС - способ решать СЛАУ не в нашем пространстве 
 		//  а в пространстве меньшей размерности - пространстве Крылова
 		//  мы создаем матрицу вращения - она будет у нас обнулять m-n элементов вектора
