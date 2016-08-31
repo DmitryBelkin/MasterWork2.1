@@ -9,7 +9,7 @@ private:
 
 	int n, m;
 	int m_maxiter, nIter, p;
-	vector <int> ig, jg;
+	vector <int> ia, ja;
 	// исходная матрица 
 	vector <double> di, ggu, ggl;
 	// матрица предобусловливания

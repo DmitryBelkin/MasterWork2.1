@@ -13,13 +13,13 @@
 ////
 ////	// ввод матрицы
 ////
-////	//считываем индексный массив ig
-////	ig.resize(n + 1, 0);
+////	//считываем индексный массив ia
+////	ia.resize(n + 1, 0);
 ////
-////	int kol = ig[n] - 1;
+////	int kol = ia[n] - 1;
 ////
-////	//считываем индексный массив jg
-////	jg.resize(kol, 0);
+////	//считываем индексный массив ja
+////	ja.resize(kol, 0);
 ////
 ////	//считываем нижний треугольник
 ////	ggl.resize(kol, 0);
@@ -51,14 +51,14 @@
 void GMRES::LUFactor()
 {
 	Mdi.resize(n);
-	Mggl.resize(ig[n] - 1);
-	Mggu.resize(ig[n] - 1);
+	Mggl.resize(ia[n] - 1);
+	Mggu.resize(ia[n] - 1);
 	Mdi[0] = di[0];
 	for (int i = 1; i < n; ++i)
 	{
-		for (int j = ig[i] - 1; j < ig[i + 1] - 1; ++j)
+		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
 		{
-			const int k = jg[j];
+			const int k = ja[j];
 			Mggl[j] = ggl[j] - j_k(i, k);
 			Mggu[j] = (ggu[j] - j_k(k, i)) / Mdi[k];
 		}
@@ -69,12 +69,12 @@ void GMRES::LUFactor()
 double GMRES::j_k(const int j, const int k)
 {
 	double result = 0.0;
-	int p = ig[j] - 1;
-	int q = ig[k] - 1;
-	while (p < (ig[j + 1] - 1) && q < (ig[k + 1] - 1))
+	int p = ia[j] - 1;
+	int q = ia[k] - 1;
+	while (p < (ia[j + 1] - 1) && q < (ia[k + 1] - 1))
 	{
-		const int pj = jg[p];
-		const int qj = jg[q];
+		const int pj = ja[p];
+		const int qj = ja[q];
 		if (pj < qj)
 			p++;
 		else if (pj > qj)
@@ -95,10 +95,10 @@ void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 	for (int k = 0; k < n; ++k)
 	{
 		Y[k] = 0.0;
-		j = ig[k] - 1;
-		while (j < ig[k + 1] - 1)
+		j = ia[k] - 1;
+		while (j < ia[k + 1] - 1)
 		{
-			const int i = jg[j];
+			const int i = ja[j];
 			Y[k] += Mggl[j] * Y[i];
 			j++;
 		}
@@ -116,10 +116,10 @@ void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 
 	for (int j = n - 1; j > 0; j--)
 	{
-		int l = ig[j + 1];
-		while (l > ig[j])
+		int l = ia[j + 1];
+		while (l > ia[j])
 		{
-			const int i = jg[l - 2];
+			const int i = ja[l - 2];
 			Y[i] -= Mggu[l - 2] * Y[j];
 			l--;
 		}
@@ -158,9 +158,9 @@ void GMRES::Ux(vector <double> &x, vector <double> &y)
 	}
 	for (int i = 1; i < n; ++i)
 	{
-		for (int j = ig[i] - 1; j < ig[i + 1] - 1; ++j)
+		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
 		{
-			const int k = jg[j];
+			const int k = ja[j];
 			y[k] += Mggu[k] * x[i];
 		}
 	}
@@ -193,10 +193,10 @@ void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
 	}
 	for (int i = 0; i < n; ++i)
 	{
-		for (int j = ig[i] - 1; j < ig[i + 1] - 1; ++j)
+		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
 		{
-			b[i] += ggl[j] * x[jg[j]];
-			b[jg[j]] += ggu[j] * x[i];
+			b[i] += ggl[j] * x[ja[j]];
+			b[ja[j]] += ggu[j] * x[i];
 		}
 	}
 }
