@@ -1,53 +1,5 @@
 #include "GMRES.h"
 
-////GMRES::GMRES()
-////{
-////	//считываем размерность пространства  рылова
-////	//m = 
-////
-////	//считываем вектор правой части 
-////	F.resize(n, 0);
-////
-////	//считываем точное решение
-////	X3.resize(n, 0);
-////
-////	// ввод матрицы
-////
-////	//считываем индексный массив ia
-////	ia.resize(n + 1, 0);
-////
-////	int kol = ia[n] - 1;
-////
-////	//считываем индексный массив ja
-////	ja.resize(kol, 0);
-////
-////	//считываем нижний треугольник
-////	ggl.resize(kol, 0);
-////
-////	//считываем верхний треугольник
-////	ggu.resize(kol, 0);
-////
-////	//считываем главную диагональ
-////	di.resize(n, 0);
-////
-////	//задаЄм начальное приближение 
-////	X0.resize(n, 0);
-////
-////	// выделим пам€ть на все оставшеес€
-////	R0.resize(n, 0);
-////	W.resize(n, 0);
-////	G.resize(m + 1, 0);
-////	C.resize(m, 0);
-////	S.resize(m, 0);
-////	H.resize(m);
-////	for (int i = 0; i < m; ++i)
-////		H[i].resize(m + 1, 0);
-////
-////	V.resize(m + 1);
-////	for (int i = 0; i < m + 1; ++i)
-////		V[i].resize(n, 0);
-////}
-
 void GMRES::LUFactor()
 {
 	Mdi.resize(n);
@@ -75,16 +27,15 @@ double GMRES::j_k(const int j, const int k)
 	{
 		const int pj = ja[p];
 		const int qj = ja[q];
-		if (pj < qj)
+		if (pj < qj) p++;
+		else 
+		if (pj > qj) q++;
+		else
+		{
+			result += Mggl[p] * Mggu[q];
 			p++;
-		else if (pj > qj)
-				q++;
-			else
-			{
-				result += Mggl[p] * Mggu[q];
-				p++;
-				q++;
-			}
+			q++;
+		}
 	}
 	return result;
 }
@@ -105,14 +56,12 @@ void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 	}
 }
 
-
 void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 {
 	for (int i = 0; i < n; ++i)
 	{
 		Y[i] = X[i];
 	}
-
 	for (int j = n - 1; j > 0; j--)
 	{
 		int l = ia[j + 1];
@@ -184,8 +133,7 @@ void GMRES::dPrintVec(const  char *f, const  vector <double> &x, const  int n)
 	fclose(file);
 }
 
-//умножение матрицы на вектор
-void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
+void GMRES::Ax(const vector <double> &x, vector <double> &b, const int n)
 {
 	for (int i = 0; i < n; ++i)
 	{
@@ -193,10 +141,10 @@ void GMRES::Ax(vector <double> &x, vector <double> &b, int n)
 	}
 	for (int i = 0; i < n; ++i)
 	{
-		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
+		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j) //
 		{
-			b[i]     += ggl[j] * x[ja[j]];
-			b[ja[j]] += ggu[j] * x[i];
+			b[ i     ] += ggl[j] * x[ ja[j] ];
+			b[ ja[j] ] += ggu[j] * x[ i     ];
 		}
 	}
 }
@@ -274,11 +222,11 @@ int GMRES::Solve() //  решатель
 	LUFactor(); // нашли матрицу предобусловливани€
 	p = m; // выбрали размер подпространства  рылова
 
-	Ax(X0, W, n);						//
-	LinComb(W, (-1), F, Z, n);			// z =(f-Ax0)
+	Ax(weights, W, n);						//
+	LinComb(W, (-1), f, Z, n);			// z =(f-Ax0)
 	AssemblRo(Z, R0);					// r=Lz
 	oldbetta = betta = NormVect(R0, n); //
-	ExtractX0(X0, X0);					// x=U(-1)x
+	ExtractX0(weights, weights);					// x=U(-1)x
 	nIter = 0;							// 
 
 	do
@@ -293,8 +241,12 @@ int GMRES::Solve() //  решатель
 		//  гораздо быстрее, итеративно и временно, чем не поворачивающие методы - ћ—√, Ћќ— и т.д.
 
 		for (int i = 0; i < m; ++i)
+		{
 			for (int j = 0; j < m + 1; ++j)
+			{
 				H[i][j] = 0; // матрица поворота - √ивенса
+			}
+		}
 
 		G[0] = betta;
 		for (int i = 1; i < m + 1; ++i) G[i] = 0; // вектор
@@ -337,29 +289,29 @@ int GMRES::Solve() //  решатель
 		for (int i = 0; i < p; ++i)
 		{
 			ExtractX0(V[i], Z);
-			LinComb(Z, G[i], X0, X0, n);
+			LinComb(Z, G[i], weights, weights, n);
 		}
 
 		if (p < m) break; // если наше подпространство оказалось меньше
 
 		// иначе 
 		// r0 = L(-1)(f-Axk)
-		Ax(X0, W, n);
-		LinComb(W, (-1), F, Z, n);
+		Ax(weights, W, n);
+		LinComb(W, (-1), f, Z, n);
 		AssemblRo(Z, R0);
 		betta = NormVect(R0, n);
 		cureps = betta / oldbetta;
 	} while ((cureps > m_eps) && (nIter < m_maxiter));	// выход если достигнута кака€-то нев€зка
 
 	// или превышено число итераций
-	printf("nIter=%d\n", nIter);
-	printf("Real precision=%le\n", cureps);
-	dPrintVec("res.txt", X0, n);
-	for (int i = 0; i < n; ++i)
-	{
-		X0[i] = X3[i] - X0[i];
-	}
-	printf("OtnPogr=%le\n", NormVect(X0, n) / NormVect(X3, n));
+	//printf("nIter=%d\n", nIter);
+	//printf("Real precision=%le\n", cureps);
+	//dPrintVec("res.txt", weights, n);
+	//for (int i = 0; i < n; ++i)
+	//{
+	//	weights[i] = X3[i] - weights[i];
+	//}
+	//printf("OtnPogr=%le\n", NormVect(weights, n) / NormVect(X3, n));
 
 	if (cureps <= m_eps    ) return  0;
 	if (nIter  >= m_maxiter) return -1;

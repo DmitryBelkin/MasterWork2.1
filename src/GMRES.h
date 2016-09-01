@@ -1,11 +1,18 @@
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <algorithm>
+#include <cassert>
 #include <vector>
+#include <cmath>
+#include <set>
 
 using namespace std;
 
 class GMRES
 {
-private:
+public:
+	vector < set <int> > ig;
 
 	int n, m;
 	int m_maxiter, nIter, p;
@@ -15,7 +22,7 @@ private:
 	// матрица предобусловливания
 	vector <double> Mdi, Mggu, Mggl;
 
-	vector <double> X3, X0, F, R0, W, G, C, S;
+	vector <double> X3, weights, f, R0, W, G, C, S;
 	vector <vector <double>> H, V;
 	double betta, m_eps, oldbetta, cureps;
 
@@ -40,7 +47,7 @@ public:
 	//вывод вектора действительных чисел двойной точности
 	void dPrintVec(const char *f, const vector <double> &x, const int n);
 	//b=A*x            ====умножение матрицы на вектор 
-	void Ax(vector <double> &x, vector <double> &b, int n);
+	void Ax(const vector <double> &x, vector <double> &b, const int n);
 	// вывод кв. матрицы
 	void PrintMatr(const vector <vector<double>> &A, const int n);
 	//Решение треугольной СЛАУ Hy=g

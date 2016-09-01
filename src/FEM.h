@@ -1,6 +1,7 @@
-#include "MCG.h"
+//#include "MCG.h"
+#include "GMRES.h"
 
-class FEM : MCG
+class FEM : GMRES
 {
 public:
 	FEM()

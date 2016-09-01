@@ -195,7 +195,8 @@ void FEM::SolveProblem()
 	SetDefault();
 	GenerateMatrixProfle();
 	CreateGlobalMatrixAndRightPart();
-	MCG_LU();
+	Solve();
+	//MCG_LU();
 }
 
 //...........................................................................
@@ -441,25 +442,67 @@ void FEM::SetDefault()
 	ig.clear  ();
 	f.clear   ();
 	di.clear  ();
-	weights.clear();
-	r.clear   ();
-	z.clear   ();
-	t.clear   ();
-	temp.clear();
+	//weights.clear();
+	//r.clear   ();
+	//z.clear   ();
+	//t.clear   ();
+	//temp.clear();
 	ggl.clear ();
 	ggu.clear ();
 
 	ig.resize  (n);
 	f.resize   (n);
 	di.resize  (n);
-	weights.resize(n);
-	r.resize   (n);
-	z.resize   (n);
-	t.resize   (n);
-	temp.resize(n);
+	//weights.resize(n);
+	//r.resize   (n);
+	//z.resize   (n);
+	//t.resize   (n);
+	//temp.resize(n);
 	ia.resize  (n + 1);
 
 	ia[0] = 0;
+
+	/////////////////////
+
+	// размерность пространства Крылова
+	m = 6;
+
+	//// вектор правой части 
+	//F.resize(n, 0);
+
+	// точное решение
+	X3.resize(n, 0);
+
+	//int kol = ia[n] - 1;
+
+	//считываем индексный массив ja
+	//ja.resize(kol, 0);
+
+	//считываем нижний треугольник
+	//ggl.resize(kol, 0);
+
+	//считываем верхний треугольник
+	//ggu.resize(kol, 0);
+
+	//считываем главную диагональ
+	di.resize(n, 0);
+
+	////задаём начальное приближение 
+	//weights.resize(n, 0);
+
+	// выделим память на все оставшееся
+	R0.resize(n, 0);
+	W.resize(n, 0);
+	G.resize(m + 1, 0);
+	C.resize(m, 0);
+	S.resize(m, 0);
+	H.resize(m);
+	for (int i = 0; i < m; ++i)
+		H[i].resize(m + 1, 0);
+
+	V.resize(m + 1);
+	for (int i = 0; i < m + 1; ++i)
+		V[i].resize(n, 0);
 }
 
 //...........................................................................
