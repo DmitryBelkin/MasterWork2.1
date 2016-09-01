@@ -66,4 +66,6 @@ public:
 	void ExtractX0(vector <double> &X, vector <double> &Y);
 	// y=U*x           === произведение матрицы на вектор
 	void Ux(vector <double> &x, vector <double> &y);
+
+	void CreateLU();
 };

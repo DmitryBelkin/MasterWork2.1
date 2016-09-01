@@ -1,5 +1,55 @@
 #include "GMRES.h"
 
+void GMRES::CreateLU()
+{
+	int size = ia[n], j, kj, ki, j1, k;
+	unsigned int i;
+	double su, sl;
+	Mggl.clear();
+	Mggu.clear();
+	Mdi.clear();
+
+	Mggl.resize(size);
+	Mggu.resize(size);
+	Mdi.resize(n);
+	for (i = 0; i < n; ++i)
+	{
+		double sd = 0;
+		const int i0 = ia[i];
+		const int i1 = ia[i + 1];
+		for (k = i0; k < i1; ++k)
+		{
+			su = 0;
+			sl = 0;
+			j = ja[k];
+			kj = ia[j];
+			ki = ia[i];
+			j1 = ia[j + 1];
+			while ((ki<k) && (kj<j1))
+			{
+				if (ja[kj] == ja[ki])
+				{
+					sl += Mggl[ki] * Mggu[kj];
+					su += Mggl[kj] * Mggu[ki];
+					ki++; kj++;
+				}
+				else
+				{
+					if (ja[ki] < ja[kj]) ki++;
+					else                 kj++;
+				}
+			}
+			assert(Mdi[j] != 0);
+			Mggl[k] =  ggl[k] - sl;
+			Mggu[k] = (ggu[k] - su) / Mdi[j];
+			sd += Mggl[k] * Mggu[k];
+		}
+		Mdi[i] = di[i] - sd;
+	}
+
+	cout << "LU - factorization passed" << endl;
+}
+
 void GMRES::LUFactor()
 {
 	Mdi.resize(n);
@@ -8,7 +58,7 @@ void GMRES::LUFactor()
 	Mdi[0] = di[0];
 	for (int i = 1; i < n; ++i)
 	{
-		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
+		for (int j = ia[i]; j < ia[i + 1]; ++j)
 		{
 			const int k = ja[j];
 			Mggl[j] =  ggl[j] - j_k(i, k);
@@ -21,9 +71,9 @@ void GMRES::LUFactor()
 double GMRES::j_k(const int j, const int k)
 {
 	double result = 0.0;
-	int p = ia[j] - 1;
-	int q = ia[k] - 1;
-	while (p < (ia[j + 1] - 1) && q < (ia[k + 1] - 1))
+	int p = ia[j];
+	int q = ia[k];
+	while (p < (ia[j + 1]) && q < (ia[k + 1]))
 	{
 		const int pj = ja[p];
 		const int qj = ja[q];
@@ -45,8 +95,8 @@ void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 	for (int k = 0; k < n; ++k)
 	{
 		Y[k] = 0.0;
-		int j = ia[k] - 1;
-		while (j < ia[k + 1] - 1)
+		int j = ia[k];
+		while (j < ia[k + 1])
 		{
 			const int i = ja[j];
 			Y[k] += Mggl[j] * Y[i];
@@ -67,8 +117,8 @@ void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 		int l = ia[j + 1];
 		while (l > ia[j])
 		{
-			const int i = ja[l - 2];
-			Y[i] -= Mggu[l - 2] * Y[j];
+			const int i = ja[l - 1];
+			Y[i] -= Mggu[l - 1] * Y[j];
 			l--;
 		}
 	}
@@ -119,7 +169,7 @@ void GMRES::Ux(vector <double> &x, vector <double> &y)
 //умножение вектора на скаляр
 void GMRES::AVec(const vector <double> &x, const double al, vector <double> &y, const int n)
 {
-	for (int i = 0; i<n; ++i)
+	for (int i = 0; i < n; ++i)
 		y[i] = al * x[i];
 }
 
@@ -141,7 +191,7 @@ void GMRES::Ax(const vector <double> &x, vector <double> &b, const int n)
 	}
 	for (int i = 0; i < n; ++i)
 	{
-		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j) //
+		for (int j = ia[i]; j < ia[i + 1]; ++j) //
 		{
 			b[ i     ] += ggl[j] * x[ ja[j] ];
 			b[ ja[j] ] += ggu[j] * x[ i     ];
@@ -159,8 +209,8 @@ int GMRES::Calcx()
 	}
 	if (!(s < 1e-30))
 	{
-		G[p - 1] /= H[p - 1][p - 1];
-		for (int i = p - 2; i >= 0; i--)
+		G[p - 1] /= H[p - 1][p - 1];     //
+		for (int i = p - 2; i >= 0; i--) //
 		{
 			s = 0;
 			for (int k = i + 1; k < p; ++k)
@@ -219,26 +269,20 @@ int GMRES::Solve() //  решатель
 {
 	vector <double> Z(n, 0);
 
-	LUFactor(); // нашли матрицу предобусловливания
+	CreateLU();
+	//LUFactor(); // нашли матрицу предобусловливания
 	p = m; // выбрали размер подпространства Крылова
 
-	Ax(weights, W, n);						//
+	Ax(weights, W, n);					//
 	LinComb(W, (-1), f, Z, n);			// z =(f-Ax0)
 	AssemblRo(Z, R0);					// r=Lz
 	oldbetta = betta = NormVect(R0, n); //
-	ExtractX0(weights, weights);					// x=U(-1)x
+	ExtractX0(weights, weights);		// x=U(-1)x
 	nIter = 0;							// 
 
 	do
 	{
 		nIter++;
-		//  ГМРЕС - способ решать СЛАУ не в нашем пространстве 
-		//  а в пространстве меньшей размерности - пространстве Крылова
-		//  мы создаем матрицу вращения - она будет у нас обнулять m-n элементов вектора
-		//  т.е. поворачивать вектор, и получать вектор с нулевыми решениями(решений) и значениями(пр.части)
-		//  когда мы повернем наш вектор, ну и соответсвенно и базис, получим систему меньшей размерности
-		//	и решим её, затем опять повернем => получим результат, причем
-		//  гораздо быстрее, итеративно и временно, чем не поворачивающие методы - МСГ, ЛОС и т.д.
 
 		for (int i = 0; i < m; ++i)
 		{

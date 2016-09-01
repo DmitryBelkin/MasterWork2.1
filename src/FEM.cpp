@@ -442,7 +442,7 @@ void FEM::SetDefault()
 	ig.clear  ();
 	f.clear   ();
 	di.clear  ();
-	//weights.clear();
+	weights.clear();
 	//r.clear   ();
 	//z.clear   ();
 	//t.clear   ();
@@ -453,7 +453,7 @@ void FEM::SetDefault()
 	ig.resize  (n);
 	f.resize   (n);
 	di.resize  (n);
-	//weights.resize(n);
+	weights.resize(n);
 	//r.resize   (n);
 	//z.resize   (n);
 	//t.resize   (n);
