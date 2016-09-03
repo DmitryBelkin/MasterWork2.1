@@ -26,7 +26,7 @@ void MCG::Lx(const vector <double> &ELf, const vector <double> &Df, vector <doub
 
 //...........................................................................
 
-void MCG::Ux(const vector <double> &EUf, vector <double> &x, const vector <double> &f) const
+void MCG::MultiplyMatrixOnVector(const vector <double> &EUf, vector <double> &x, const vector <double> &f) const
 {
 	vector<double> z(x.size());
 	x.swap(z);
@@ -174,7 +174,7 @@ void MCG::MCG_LU()
 	iteration = 1;
 	while (norm > m_eps && iteration < m_maxiter)
 	{
-		Ux(U, temp1, z);
+		MultiplyMatrixOnVector(U, temp1, z);
 		MultMatrixOnVector(ggu, ggl, di, temp1, temp2);
 		Lx(L, LUdi, temp1, temp2);
 		LTx(L, LUdi, temp2, temp1);
@@ -198,7 +198,7 @@ void MCG::MCG_LU()
 		cout << "\r" << "\t Current residual = " << norm;
 	}
 	cout << endl;
-	Ux(U, temp1, weights);
+	MultiplyMatrixOnVector(U, temp1, weights);
 	weights = temp1;
 
 	cout << "6. Solution obtained" << endl;

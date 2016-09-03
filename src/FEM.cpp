@@ -471,7 +471,7 @@ void FEM::SetDefault()
 	//F.resize(n, 0);
 
 	// точное решение
-	X3.resize(n, 0);
+	//X3.resize(n, 0);
 
 	//int kol = ia[n] - 1;
 

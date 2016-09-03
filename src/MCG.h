@@ -40,7 +40,7 @@ public:
 	double ScalarProduct(const vector <double> &v1, const vector <double> &v2) const;
 
 	void   Lx (const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const;
-	void   Ux (const vector <double> &EUf,                            vector <double> &x, const vector <double> &f) const;
+	void   MultiplyMatrixOnVector (const vector <double> &EUf,                            vector <double> &x, const vector <double> &f) const;
 	void   LTx(const vector <double> &ELf, const vector <double> &Df, vector <double> &x, const vector <double> &f) const;
 	void   UTx(const vector <double> &EUf,                            vector <double> &x, const vector <double> &f) const;
 	void   MultMatrixOnVector(const vector <double> &EU, const vector <double> &EL, const vector <double> &D, const vector <double> &vect, vector <double> &res) const;

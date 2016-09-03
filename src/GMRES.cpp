@@ -1,5 +1,7 @@
 #include "GMRES.h"
 
+//...........................................................................
+
 void GMRES::CreateLU()
 {
 	int size = ia[n], j, kj, ki, j1, k;
@@ -50,45 +52,7 @@ void GMRES::CreateLU()
 	cout << "LU - factorization passed" << endl;
 }
 
-void GMRES::LUFactor()
-{
-	Mdi.resize(n);
-	Mggl.resize(ia[n] - 1);
-	Mggu.resize(ia[n] - 1);
-	Mdi[0] = di[0];
-	for (int i = 1; i < n; ++i)
-	{
-		for (int j = ia[i]; j < ia[i + 1]; ++j)
-		{
-			const int k = ja[j];
-			Mggl[j] =  ggl[j] - j_k(i, k);
-			Mggu[j] = (ggu[j] - j_k(k, i)) / Mdi[k];
-		}
-		Mdi[i] = di[i] - j_k(i, i);
-	}
-}
-
-double GMRES::j_k(const int j, const int k)
-{
-	double result = 0.0;
-	int p = ia[j];
-	int q = ia[k];
-	while (p < (ia[j + 1]) && q < (ia[k + 1]))
-	{
-		const int pj = ja[p];
-		const int qj = ja[q];
-		if (pj < qj) p++;
-		else 
-		if (pj > qj) q++;
-		else
-		{
-			result += Mggl[p] * Mggu[q];
-			p++;
-			q++;
-		}
-	}
-	return result;
-}
+//...........................................................................
 
 void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 {
@@ -105,6 +69,8 @@ void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
 		Y[k] = (X[k] - Y[k]) / Mdi[k];
 	}
 }
+
+//...........................................................................
 
 void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 {
@@ -124,6 +90,8 @@ void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 	}
 }
 
+//...........................................................................
+
 void GMRES::LinComb(const vector <double> &x, const double al, const vector <double> &y, vector <double> &rez, const int n)
 {
 	for (int i = 0; i < n; ++i)
@@ -131,6 +99,8 @@ void GMRES::LinComb(const vector <double> &x, const double al, const vector <dou
 		rez[i] = y[i] + al*x[i];
 	}
 }
+
+//...........................................................................
 
 //скал€рное произведение
 double GMRES::ScMult(const vector <double> &x, const vector <double> &y, const int n)
@@ -141,6 +111,8 @@ double GMRES::ScMult(const vector <double> &x, const vector <double> &y, const i
 	return s;
 }
 
+//...........................................................................
+
 //норма вектора
 double GMRES::NormVect(const vector <double> &x, const int n)
 {
@@ -150,7 +122,9 @@ double GMRES::NormVect(const vector <double> &x, const int n)
 	return sqrt(s);
 }
 
-void GMRES::Ux(vector <double> &x, vector <double> &y)
+//...........................................................................
+
+void GMRES::MultiplyMatrixOnVector(const vector <double> &x, vector <double> &y) const
 {
 	for (int i = 0; i < n; ++i)
 	{
@@ -166,12 +140,16 @@ void GMRES::Ux(vector <double> &x, vector <double> &y)
 	}
 }
 
+//...........................................................................
+
 //умножение вектора на скал€р
 void GMRES::AVec(const vector <double> &x, const double al, vector <double> &y, const int n)
 {
 	for (int i = 0; i < n; ++i)
 		y[i] = al * x[i];
 }
+
+//...........................................................................
 
 //вывод вектора действительных чисел двойной точности
 void GMRES::dPrintVec(const  char *f, const  vector <double> &x, const  int n)
@@ -182,6 +160,8 @@ void GMRES::dPrintVec(const  char *f, const  vector <double> &x, const  int n)
 	fprintf(file, "\n");
 	fclose(file);
 }
+
+//...........................................................................
 
 void GMRES::Ax(const vector <double> &x, vector <double> &b, const int n)
 {
@@ -198,6 +178,8 @@ void GMRES::Ax(const vector <double> &x, vector <double> &b, const int n)
 		}
 	}
 }
+
+//...........................................................................
 
 //–ешение треугольной —Ћј” Hy=g
 int GMRES::Calcx()
@@ -228,6 +210,8 @@ int GMRES::Calcx()
 	}
 }
 
+//...........................................................................
+
 void GMRES::PrintMatr(const vector <vector <double>> &A, const int n)
 {
 	for (int i = 0; i < n + 1; ++i)
@@ -240,6 +224,8 @@ void GMRES::PrintMatr(const vector <vector <double>> &A, const int n)
 	}
 }
 
+//...........................................................................
+
 void CalcSC(double& x, double& y, double& c, double& s)
 {
 	c = x / sqrt(x*x + y*y);
@@ -248,12 +234,16 @@ void CalcSC(double& x, double& y, double& c, double& s)
 	y = 0;
 }
 
+//...........................................................................
+
 void Rot(double& x, double& y, const double& c, const double& s)
 {
 	const double x1 = c*x - s*y;
 	y = s*x + c*y;
 	x = x1;
 }
+
+//...........................................................................
 
 void GMRES::Givens(vector <double> &Hi, const int i)
 {
@@ -265,12 +255,13 @@ void GMRES::Givens(vector <double> &Hi, const int i)
 	Rot(G[i], G[i + 1], C[i], S[i]);
 }
 
+//...........................................................................
+
 int GMRES::Solve() //  решатель 
 {
 	vector <double> Z(n, 0);
 
 	CreateLU();
-	//LUFactor(); // нашли матрицу предобусловливани€
 	p = m; // выбрали размер подпространства  рылова
 
 	Ax(weights, W, n);					//
@@ -351,3 +342,5 @@ int GMRES::Solve() //  решатель
 	if (nIter  >= m_maxiter) return -1;
 	return -2;
 }
+
+//...........................................................................
