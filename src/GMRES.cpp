@@ -347,16 +347,6 @@ int GMRES::Solve() //  решатель
 		cureps = betta / oldbetta;
 	} while ((cureps > m_eps) && (nIter < m_maxiter));	// выход если достигнута какая-то невязка
 
-	// или превышено число итераций
-	//printf("nIter=%d\n", nIter);
-	//printf("Real precision=%le\n", cureps);
-	//dPrintVec("res.txt", weights, n);
-	//for (int i = 0; i < n; ++i)
-	//{
-	//	weights[i] = X3[i] - weights[i];
-	//}
-	//printf("OtnPogr=%le\n", NormVect(weights, n) / NormVect(X3, n));
-
 	if (cureps <= m_eps    ) return  0;
 	if (nIter  >= m_maxiter) return -1;
 	return -2;

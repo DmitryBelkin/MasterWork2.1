@@ -17,12 +17,10 @@ public:
 	int n, m;
 	int m_maxiter, nIter, p;
 	vector <int> ia, ja;
-	// исходная матрица 
 	vector <double> di, ggu, ggl;
-	// матрица предобусловливания
 	vector <double> Mdi, Mggu, Mggl;
 
-	vector <double> X3, weights, f, R0, W, G, C, S;
+	vector <double> weights, f, R0, W, G, C, S;
 	vector <vector <double>> H, V;
 	double betta, m_eps, oldbetta, cureps;
 
