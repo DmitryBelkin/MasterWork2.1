@@ -216,21 +216,21 @@ void FEM::GenerateMatrixProfle()
 	{
 		AddNvtr(m_nvtr[i]);
 	}
-	for (unsigned int i = 1; i < n + 1; ++i)
+	for (unsigned int i = 1; i < m_dimensionOfSLAE + 1; ++i)
 	{
-		ia[i] = ia[i - 1] + ig[i - 1].size();
+		m_ia[i] = m_ia[i - 1] + ig[i - 1].size();
 	}
-	ja.resize(ia[n]);
+	m_ja.resize(m_ia[m_dimensionOfSLAE]);
 	int i = 0;
 	for (auto const &value : ig)
 	{
 		for (unsigned int k = 0; k < value.size(); ++k, ++i)
 		{
-			ja[i] = *std::next(value.begin(), k);
+			m_ja[i] = *std::next(value.begin(), k);
 		}
 	}
-	ggl.resize(ia[n]);
-	ggu.resize(ia[n]);
+	m_ggl.resize(m_ia[m_dimensionOfSLAE]);
+	m_ggu.resize(m_ia[m_dimensionOfSLAE]);
 	cout << "Matrix profle was created" << endl;
 }
 
@@ -435,74 +435,74 @@ void FEM::SetDefault()
 {
 	m_elemAmount = m_nvtr.size();
 	// на каждую вершину приходится по 3 (DOF = 3) смещения (по трём направлениям)
-	n = DOF * m_xyz.size();
+	m_dimensionOfSLAE = DOF * m_xyz.size();
 
-	ia.clear  ();
-	ja.clear  ();
+	m_ia.clear  ();
+	m_ja.clear  ();
 	ig.clear  ();
 	f.clear   ();
-	di.clear  ();
+	m_di.clear  ();
 	weights.clear();
 	//r.clear   ();
 	//z.clear   ();
 	//t.clear   ();
 	//temp.clear();
-	ggl.clear ();
-	ggu.clear ();
+	m_ggl.clear ();
+	m_ggu.clear ();
 
-	ig.resize  (n);
-	f.resize   (n);
-	di.resize  (n);
-	weights.resize(n);
-	//r.resize   (n);
-	//z.resize   (n);
-	//t.resize   (n);
-	//temp.resize(n);
-	ia.resize  (n + 1);
+	ig.resize  (m_dimensionOfSLAE);
+	f.resize   (m_dimensionOfSLAE);
+	m_di.resize  (m_dimensionOfSLAE);
+	weights.resize(m_dimensionOfSLAE);
+	//r.resize   (m_dimensionOfSLAE);
+	//z.resize   (m_dimensionOfSLAE);
+	//t.resize   (m_dimensionOfSLAE);
+	//temp.resize(m_dimensionOfSLAE);
+	m_ia.resize  (m_dimensionOfSLAE + 1);
 
-	ia[0] = 0;
+	m_ia[0] = 0;
 
 	/////////////////////
 
 	// размерность пространства Крылова
-	m = 6;
+	m_gmresDepth = 10;
 
 	//// вектор правой части 
-	//F.resize(n, 0);
+	//F.resize(m_dimensionOfSLAE, 0);
 
 	// точное решение
-	//X3.resize(n, 0);
+	//X3.resize(m_dimensionOfSLAE, 0);
 
-	//int kol = ia[n] - 1;
+	//int kol = m_ia[m_dimensionOfSLAE] - 1;
 
-	//считываем индексный массив ja
-	//ja.resize(kol, 0);
+	//считываем индексный массив m_ja
+	//m_ja.resize(kol, 0);
 
 	//считываем нижний треугольник
-	//ggl.resize(kol, 0);
+	//m_ggl.resize(kol, 0);
 
 	//считываем верхний треугольник
-	//ggu.resize(kol, 0);
+	//m_ggu.resize(kol, 0);
 
 	//считываем главную диагональ
-	di.resize(n, 0);
+	m_di.resize(m_dimensionOfSLAE, 0);
 
 	////задаём начальное приближение 
-	//weights.resize(n, 0);
+	//weights.resize(m_dimensionOfSLAE, 0);
 
 	// выделим память на все оставшееся
-	R0.resize(n, 0);
-	W.resize(n, 0);
-	G.resize(m + 1, 0);
-	C.resize(m, 0);
-	S.resize(m, 0);
-	H.resize(m);
-	for (int i = 0; i < m; ++i)
-		H[i].resize(m + 1, 0);
+	R0.resize(m_dimensionOfSLAE, 0);
+	W.resize(m_dimensionOfSLAE, 0);
+	G.resize(m_gmresDepth + 1, 0);
+	C.resize(m_gmresDepth, 0);
+	S.resize(m_gmresDepth, 0);
+	H.resize(m_gmresDepth);
+	for (int i = 0; i < m_gmresDepth; ++i)
+		H[i].resize(m_gmresDepth + 1, 0);
 
-	V.resize(m + 1);
-	for (int i = 0; i < m + 1; ++i)
-		V[i].resize(n, 0);
+	V.resize(m_gmresDepth + 1);
+	for (int i = 0; i < m_gmresDepth + 1; ++i)
+		V[i].resize(m_dimensionOfSLAE, 0);
 }
 
 //...........................................................................
@@ -598,27 +598,27 @@ void FEM::AddLocalToGlobal(const vector <int> &mtrx, const vector < vector <doub
 		{
 			const int ki = mtrx[i] * DOF + shift;
 
-			assert(ki < di.size()); di[ki] += K[i * DOF + shift][i * DOF + shift];
+			assert(ki < m_di.size()); m_di[ki] += K[i * DOF + shift][i * DOF + shift];
 			assert(ki < f.size()) ;  f[ki] += b[i * DOF + shift]                 ;
 			for (int j = 0; j < i; ++j)
 			{
 				int kj = mtrx[j] * DOF + shift;
-				if (ki > kj) { assert(ki < ia.size()); k = ia[ki]; }
+				if (ki > kj) { assert(ki < m_ia.size()); k = m_ia[ki]; }
 				else
 				{
-					assert(kj < ia.size()); 
-					k  = ia[kj];
+					assert(kj < m_ia.size()); 
+					k  = m_ia[kj];
 					kj = ki    ;
 				}
 
-				while (ja[k] != kj)
+				while (m_ja[k] != kj)
 				{
 					++k;
-					assert(k < ja.size());
+					assert(k < m_ja.size());
 				}
-				assert(k < ggl.size());
-				ggl[k] += K[i * DOF + shift][j * DOF + shift];
-				ggu[k] += K[i * DOF + shift][j * DOF + shift];
+				assert(k < m_ggl.size());
+				m_ggl[k] += K[i * DOF + shift][j * DOF + shift];
+				m_ggu[k] += K[i * DOF + shift][j * DOF + shift];
 			}
 		}
 	}
@@ -663,15 +663,15 @@ void FEM::BoundaryConditions()
 void FEM::Boundary_1(int num, double Ug)
 {
 	int j = 0;
-	di[num] = 1.0;
+	m_di[num] = 1.0;
 	f [num] = Ug;
-	for (; j < ia[n]; ++j)
+	for (; j < m_ia[m_dimensionOfSLAE]; ++j)
 	{
-		if (ja[j] == num)
-			ggu[j] = 0;
+		if (m_ja[j] == num)
+			m_ggu[j] = 0;
 	}
-	for (j = ia[num]; j < ia[num + 1]; ++j)
-		ggl[j] = 0;
+	for (j = m_ia[num]; j < m_ia[num + 1]; ++j)
+		m_ggl[j] = 0;
 }
 
 //...........................................................................
@@ -707,7 +707,7 @@ void FEM::PrintFigure()
 {
 	ofstream Figure("Figure.dat");
 	Figure << "TITLE = \"Figure\"" << endl;
-	Figure << "VARIABLES = \"X\", \"Y\", \"Z\", \"P\"" << endl;
+	Figure << "VARIABLES = \"X\", \"Y\", \"Z\", \"m_currentGmresDepth\"" << endl;
 	//Figure << "ZONE i=" << m_amountOfStepsX << 
 	//             ", j=" << m_amountOfStepsY << 
 	//             ", k=" << m_amountOfStepsZ << 
@@ -808,7 +808,7 @@ void FEM::PrintMesh()
 {
 	ofstream Figure(outputFigure);
 	Figure << "TITLE = \"Figure\"" << endl;
-	Figure << "VARIABLES = \"X\", \"Y\", \"Z\", \"P\"" << endl;
+	Figure << "VARIABLES = \"X\", \"Y\", \"Z\", \"m_currentGmresDepth\"" << endl;
 	//Figure << 
 	//	"ZONE I=" << 2 <<
 	//	", J="    << 2 <<

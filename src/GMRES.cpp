@@ -1,52 +1,53 @@
 #include "GMRES.h"
+#include <numeric>
 
 //...........................................................................
 
-void GMRES::CreateLU()
+void GMRES::DecompositionLU()
 {
-	int size = ia[n], j, kj, ki, j1, k;
+	int size = m_ia[m_dimensionOfSLAE], j, kj, ki, j1, k;
 	unsigned int i;
 	double su, sl;
-	Mggl.clear();
-	Mggu.clear();
-	Mdi.clear();
+	m_Mggl.clear();
+	m_Mggu.clear();
+	m_Mdi.clear();
 
-	Mggl.resize(size);
-	Mggu.resize(size);
-	Mdi.resize(n);
-	for (i = 0; i < n; ++i)
+	m_Mggl.resize(size);
+	m_Mggu.resize(size);
+	m_Mdi.resize(m_dimensionOfSLAE);
+	for (i = 0; i < m_dimensionOfSLAE; ++i)
 	{
 		double sd = 0;
-		const int i0 = ia[i];
-		const int i1 = ia[i + 1];
+		const int i0 = m_ia[i];
+		const int i1 = m_ia[i + 1];
 		for (k = i0; k < i1; ++k)
 		{
 			su = 0;
 			sl = 0;
-			j = ja[k];
-			kj = ia[j];
-			ki = ia[i];
-			j1 = ia[j + 1];
+			j = m_ja[k];
+			kj = m_ia[j];
+			ki = m_ia[i];
+			j1 = m_ia[j + 1];
 			while ((ki<k) && (kj<j1))
 			{
-				if (ja[kj] == ja[ki])
+				if (m_ja[kj] == m_ja[ki])
 				{
-					sl += Mggl[ki] * Mggu[kj];
-					su += Mggl[kj] * Mggu[ki];
+					sl += m_Mggl[ki] * m_Mggu[kj];
+					su += m_Mggl[kj] * m_Mggu[ki];
 					ki++; kj++;
 				}
 				else
 				{
-					if (ja[ki] < ja[kj]) ki++;
+					if (m_ja[ki] < m_ja[kj]) ki++;
 					else                 kj++;
 				}
 			}
-			assert(Mdi[j] != 0);
-			Mggl[k] =  ggl[k] - sl;
-			Mggu[k] = (ggu[k] - su) / Mdi[j];
-			sd += Mggl[k] * Mggu[k];
+			assert(m_Mdi[j] != 0);
+			m_Mggl[k] =  m_ggl[k] - sl;
+			m_Mggu[k] = (m_ggu[k] - su) / m_Mdi[j];
+			sd += m_Mggl[k] * m_Mggu[k];
 		}
-		Mdi[i] = di[i] - sd;
+		m_Mdi[i] = m_di[i] - sd;
 	}
 
 	cout << "LU - factorization passed" << endl;
@@ -54,37 +55,37 @@ void GMRES::CreateLU()
 
 //...........................................................................
 
-void GMRES::AssemblRo(const vector <double> &X, vector <double> &Y)
+void GMRES::ForwardElimination(const vector <double> &X, vector <double> &Y) const
 {
-	for (int k = 0; k < n; ++k)
+	for (int k = 0; k < m_dimensionOfSLAE; ++k)
 	{
 		Y[k] = 0.0;
-		int j = ia[k];
-		while (j < ia[k + 1])
+		int j = m_ia[k];
+		while (j < m_ia[k + 1])
 		{
-			const int i = ja[j];
-			Y[k] += Mggl[j] * Y[i];
+			const int i = m_ja[j];
+			Y[k] += m_Mggl[j] * Y[i];
 			j++;
 		}
-		Y[k] = (X[k] - Y[k]) / Mdi[k];
+		Y[k] = (X[k] - Y[k]) / m_Mdi[k];
 	}
 }
 
 //...........................................................................
 
-void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
+void GMRES::BackSubstitution(const vector <double> &X, vector <double> &Y) const
 {
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m_dimensionOfSLAE; ++i)
 	{
 		Y[i] = X[i];
 	}
-	for (int j = n - 1; j > 0; j--)
+	for (int j = m_dimensionOfSLAE - 1; j > 0; j--)
 	{
-		int l = ia[j + 1];
-		while (l > ia[j])
+		int l = m_ia[j + 1];
+		while (l > m_ia[j])
 		{
-			const int i = ja[l - 1];
-			Y[i] -= Mggu[l - 1] * Y[j];
+			const int i = m_ja[l - 1];
+			Y[i] -= m_Mggu[l - 1] * Y[j];
 			l--;
 		}
 	}
@@ -92,9 +93,9 @@ void GMRES::ExtractX0(vector <double> &X, vector <double> &Y)
 
 //...........................................................................
 
-void GMRES::LinComb(const vector <double> &x, const double al, const vector <double> &y, vector <double> &rez, const int n)
+void GMRES::LinearCombination(const vector <double> &x, const double al, const vector <double> &y, vector <double> &rez, const int m_dimensionOfSLAE)
 {
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m_dimensionOfSLAE; ++i)
 	{
 		rez[i] = y[i] + al*x[i];
 	}
@@ -103,78 +104,44 @@ void GMRES::LinComb(const vector <double> &x, const double al, const vector <dou
 //...........................................................................
 
 //скалярное произведение
-double GMRES::ScMult(const vector <double> &x, const vector <double> &y, const int n)
+double GMRES::ScalarProduct(const vector <double> &x, const vector <double> &y, const int m_dimensionOfSLAE)
 {
-	double s = 0;
-	for (int i = 0; i < n; ++i)
-		s += x[i] * y[i];
-	return s;
+	return inner_product(x.begin(), x.end(), y.begin(), 0.0);
 }
 
 //...........................................................................
 
 //норма вектора
-double GMRES::NormVect(const vector <double> &x, const int n)
+double GMRES::NormVector(const vector <double> &x, const int m_dimensionOfSLAE)
 {
 	double s = 0;
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m_dimensionOfSLAE; ++i)
 		s += x[i] * x[i];
 	return sqrt(s);
 }
 
 //...........................................................................
 
-void GMRES::MultiplyMatrixOnVector(const vector <double> &x, vector <double> &y) const
+void GMRES::MultiplyVectorOnScalar(const vector <double> &x, const double al, vector <double> &y, const int m_dimensionOfSLAE)
 {
-	for (int i = 0; i < n; ++i)
-	{
-		y[i] = x[i];
-	}
-	for (int i = 1; i < n; ++i)
-	{
-		for (int j = ia[i] - 1; j < ia[i + 1] - 1; ++j)
-		{
-			const int k = ja[j];
-			y[k] += Mggu[k] * x[i];
-		}
-	}
-}
-
-//...........................................................................
-
-//умножение вектора на скаляр
-void GMRES::AVec(const vector <double> &x, const double al, vector <double> &y, const int n)
-{
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m_dimensionOfSLAE; ++i)
 		y[i] = al * x[i];
 }
 
 //...........................................................................
 
-//вывод вектора действительных чисел двойной точности
-void GMRES::dPrintVec(const  char *f, const  vector <double> &x, const  int n)
+void GMRES::MultiplyMatrixOnVector(const vector <double> &x, vector <double> &b, const int m_dimensionOfSLAE)
 {
-	FILE *file = fopen(f, "wt");
-	for (int k = 0; k < n; ++k)
-		fprintf(file, "%12lf\n", x[k]);
-	fprintf(file, "\n");
-	fclose(file);
-}
-
-//...........................................................................
-
-void GMRES::Ax(const vector <double> &x, vector <double> &b, const int n)
-{
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m_dimensionOfSLAE; ++i)
 	{
-		b[i] = di[i] * x[i];
+		b[i] = m_di[i] * x[i];
 	}
-	for (int i = 0; i < n; ++i)
+	for (int i = 0; i < m_dimensionOfSLAE; ++i)
 	{
-		for (int j = ia[i]; j < ia[i + 1]; ++j) //
+		for (int j = m_ia[i]; j < m_ia[i + 1]; ++j) //
 		{
-			b[ i     ] += ggl[j] * x[ ja[j] ];
-			b[ ja[j] ] += ggu[j] * x[ i     ];
+			b[ i     ] += m_ggl[j] * x[ m_ja[j] ];
+			b[ m_ja[j] ] += m_ggu[j] * x[ i     ];
 		}
 	}
 }
@@ -185,17 +152,17 @@ void GMRES::Ax(const vector <double> &x, vector <double> &b, const int n)
 int GMRES::Calcx()
 {
 	double s = 1;
-	for (int i = 0; i < p; ++i)
+	for (int i = 0; i < m_currentGmresDepth; ++i)
 	{
 		s *= H[i][i];
 	}
 	if (!(s < 1e-30))
 	{
-		G[p - 1] /= H[p - 1][p - 1];     //
-		for (int i = p - 2; i >= 0; i--) //
+		G[m_currentGmresDepth - 1] /= H[m_currentGmresDepth - 1][m_currentGmresDepth - 1];
+		for (int i = m_currentGmresDepth - 2; i >= 0; i--)
 		{
 			s = 0;
-			for (int k = i + 1; k < p; ++k)
+			for (int k = i + 1; k < m_currentGmresDepth; ++k)
 			{
 				s += H[k][i] * G[k];
 			}
@@ -207,20 +174,6 @@ int GMRES::Calcx()
 	{
 		printf("Matrix is incorrect!");
 		return 1;
-	}
-}
-
-//...........................................................................
-
-void GMRES::PrintMatr(const vector <vector <double>> &A, const int n)
-{
-	for (int i = 0; i < n + 1; ++i)
-	{
-		for (int j = 0; j < n; ++j)
-		{
-			printf("%lf ", A[j][i]);
-		}
-		printf("\n");
 	}
 }
 
@@ -257,90 +210,119 @@ void GMRES::Givens(vector <double> &Hi, const int i)
 
 //...........................................................................
 
-int GMRES::Solve() //  решатель 
+void GMRES::Solve()
 {
-	vector <double> Z(n, 0);
+	vector <double> Z(m_dimensionOfSLAE, 0);
+	DecompositionLU();
+	m_currentGmresDepth = m_gmresDepth; // выбрали размер подпространства Крылова
+	MultiplyMatrixOnVector(weights, W, m_dimensionOfSLAE);					//
+	LinearCombination(W, (-1), f, Z, m_dimensionOfSLAE);			// z =(f-Ax0)
+	ForwardElimination(Z, R0);					// r=Lz
+	oldbetta = betta = NormVector(R0, m_dimensionOfSLAE); //
+	BackSubstitution(weights, weights);		// x=U(-1)x
+	int iteration = 0;							// 
 
-	CreateLU();
-	p = m; // выбрали размер подпространства Крылова
-
-	Ax(weights, W, n);					//
-	LinComb(W, (-1), f, Z, n);			// z =(f-Ax0)
-	AssemblRo(Z, R0);					// r=Lz
-	oldbetta = betta = NormVect(R0, n); //
-	ExtractX0(weights, weights);		// x=U(-1)x
-	nIter = 0;							// 
-
+	double residual = 0;
 	do
 	{
-		nIter++;
-
-		for (int i = 0; i < m; ++i)
+		iteration++;
+		for (int i = 0; i < m_gmresDepth; ++i)
 		{
-			for (int j = 0; j < m + 1; ++j)
+			for (int j = 0; j < m_gmresDepth + 1; ++j)
 			{
 				H[i][j] = 0; // матрица поворота - Гивенса
 			}
 		}
 
 		G[0] = betta;
-		for (int i = 1; i < m + 1; ++i) G[i] = 0; // вектор
+		for (int i = 1; i < m_gmresDepth + 1; ++i) G[i] = 0;
 
-		AVec(R0, (1 / betta), V[0], n);  // касается поворота 
-
-		for (int i = 0; i < m; ++i) // используем пространство Крылова
+		MultiplyVectorOnScalar(R0, (1 / betta), V[0], m_dimensionOfSLAE);  // касается поворота 
+		for (int i = 0; i < m_gmresDepth; ++i) // используем пространство Крылова
 		{
-			ExtractX0(V[i], W);
-			Ax(W, Z, n);
-			AssemblRo(Z, W);
+			BackSubstitution(V[i], W);
+			MultiplyMatrixOnVector(W, Z, m_dimensionOfSLAE);
+			ForwardElimination(Z, W);
 			// поиск матрицы поворота (метод Гивенса)
 			for (int k = 0; k <= i; ++k)
 			{
-				H[i][k] = ScMult(W, V[k], n);
-				LinComb(V[k], (-H[i][k]), W, W, n);
+				H[i][k] = ScalarProduct(W, V[k], m_dimensionOfSLAE);
+				LinearCombination(V[k], (-H[i][k]), W, W, m_dimensionOfSLAE);
 			}
 
-			H[i][i + 1] = NormVect(W, n);
-			AVec(W, (1 / H[i][i + 1]), V[i + 1], n);
+			H[i][i + 1] = NormVector(W, m_dimensionOfSLAE);
+			MultiplyVectorOnScalar(W, (1 / H[i][i + 1]), V[i + 1], m_dimensionOfSLAE);
 			Givens(H[i], i);
 			if (fabs(G[i + 1]) < m_eps)
 			{
-				p = i;
+				m_currentGmresDepth = i;
 				break;
 			}
 		}
 
-		if (abs(p) == 0) break;
+		if (abs(m_currentGmresDepth) == 0) break;
 		// минимизация ||beta*e-h*y||=>y
 		// Hy=g ==>y=H(-1)g
 		if (Calcx())
 		{
-			printf("\nIter=%d\n", nIter);
+			printf("\iteration=%d\m_dimensionOfSLAE", iteration);
 		}
 
-		// xk= xk+ sum(i=1,p; yi*vi)
+		// xk= xk+ sum(i=1,m_currentGmresDepth; yi*vi)
 		// vi - базис подпространства
 		// yi - к-ты 
-		for (int i = 0; i < p; ++i)
+		for (int i = 0; i < m_currentGmresDepth; ++i)
 		{
-			ExtractX0(V[i], Z);
-			LinComb(Z, G[i], weights, weights, n);
+			BackSubstitution(V[i], Z);
+			LinearCombination(Z, G[i], weights, weights, m_dimensionOfSLAE);
 		}
 
-		if (p < m) break; // если наше подпространство оказалось меньше
+		if (m_currentGmresDepth < m_gmresDepth) break; // если наше подпространство оказалось меньше
 
 		// иначе 
 		// r0 = L(-1)(f-Axk)
-		Ax(weights, W, n);
-		LinComb(W, (-1), f, Z, n);
-		AssemblRo(Z, R0);
-		betta = NormVect(R0, n);
-		cureps = betta / oldbetta;
-	} while ((cureps > m_eps) && (nIter < m_maxiter));	// выход если достигнута какая-то невязка
+		MultiplyMatrixOnVector(weights, W, m_dimensionOfSLAE);
+		LinearCombination(W, (-1), f, Z, m_dimensionOfSLAE);
+		ForwardElimination(Z, R0);
+		betta = NormVector(R0, m_dimensionOfSLAE);
+		residual = betta / oldbetta;
+		cout << "\r" << "\t Current residual = " << residual;
+	} while ((residual > m_eps) && (iteration < m_maxiter));
 
-	if (cureps <= m_eps    ) return  0;
-	if (nIter  >= m_maxiter) return -1;
-	return -2;
+	cout << endl << "Solution obtained" << endl;
+	if (residual > m_eps)
+		cout << "Warning! residual > eps! : residual = " << residual << " eps = " << m_eps << endl;
+	if (iteration >= m_maxiter)
+		cout << "Warning! Solution obtained by maximum iterations: " << iteration << endl;
+
+	WriteSolverInfoInFile   (iteration, residual);
+	WriteSolverInfoInConsole(iteration, residual);
+}
+
+//...........................................................................
+
+void GMRES::WriteSolverInfoInFile(const int iterations, const double residual) const
+{
+	ofstream solverInfo(solverInfoFilename, ios::out);
+	solverInfo.setf(ios::scientific); solverInfo.precision(9);
+	solverInfo << "Iterations = " << iterations << endl;
+	solverInfo << "Residual   = " << residual << endl << endl;
+
+	for (auto const &value : weights)
+	{
+		solverInfo << value << endl;
+	}
+	solverInfo.close();
+}
+
+//...........................................................................
+
+void GMRES::WriteSolverInfoInConsole(const int iterations, const double residual) const
+{
+	cout.setf(ios::scientific); cout.precision(9);
+	cout << "\t Iterations = " << iterations << endl;
+	cout << "\t Residual   = " << residual << endl << endl;
+	cout.unsetf(ios::scientific);
 }
 
 //...........................................................................
